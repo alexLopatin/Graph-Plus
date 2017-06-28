@@ -151,7 +151,7 @@ namespace GraphPlus
                 parent.Handle, zero, zero, zero);
 
             scene = new Scene(Handle, 255,255,255); // Создание нового объекта Scene
-
+            T = new Thread(new ThreadStart(MouseController));
             return new HandleRef(this, Handle);
         }
 
@@ -198,8 +198,14 @@ namespace GraphPlus
 
                 if(message == WM_RBUTTONDOWN)
                 {
-                    T = new Thread(new ThreadStart(MouseController));
-                    T.Start();
+                    if (!T.IsAlive)
+                    {
+                        T = new Thread(new ThreadStart(MouseController));
+                        T.Start();
+                    }
+                    else
+                        T.Abort();
+                    
                 }
                 if (message == WM_RBUTTONUP)
                 {
@@ -207,11 +213,7 @@ namespace GraphPlus
                         T.Abort();
                     
                 }
-                if (message == WM_NCLBUTTONUP)
-                {
-                    if(T.IsAlive)
-                        T.Abort();
-                }
+                
             }
             catch (Exception e)
             {
@@ -238,10 +240,11 @@ namespace GraphPlus
 
 
 
+        POINT oldPosition;
         void MouseController()
         {
+            
 
-            POINT oldPosition;
             GetCursorPos(out oldPosition);
             while (true)
             {
@@ -249,7 +252,7 @@ namespace GraphPlus
                 POINT newPosition;
                 //Thread.Sleep(1);
                 GetCursorPos(out newPosition);
-                MoveCamera((float)(newPosition.X - oldPosition.X), (float)(newPosition.Y - oldPosition.Y));
+                MoveCamera(newPosition.X - oldPosition.X, newPosition.Y - oldPosition.Y);
                 oldPosition = newPosition;
             }
         }

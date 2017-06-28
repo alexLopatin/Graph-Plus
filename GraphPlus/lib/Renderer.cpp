@@ -27,6 +27,7 @@ namespace lib
 		ID2D1SolidColorBrush *m_pLightGrayBrush;
 		IDWriteTextFormat *m_pTextFormat;
 		IDWriteFactory  *m_pDWriteFactory;
+		IDWriteTextLayout *m_pTextLayout;
 
 		bool Initialize(HWND handle)
 		{
@@ -67,7 +68,7 @@ namespace lib
 
 		}
 
-		void CreateText(WCHAR text[], FLOAT msc_fontSize, POINT pos)
+		void GetTextLayout(WCHAR text[], FLOAT msc_fontSize)
 		{
 			static const WCHAR msc_fontName[] = L"Verdana";
 			D2D1_SIZE_F renderTargetSize = target->GetSize();
@@ -81,19 +82,36 @@ namespace lib
 				L"", //locale
 				&m_pTextFormat
 			);
+			
+			m_pDWriteFactory->CreateTextLayout(text, wcslen(text), m_pTextFormat, m_pTextFormat->GetFontSize()*wcslen(text), m_pTextFormat->GetFontSize(), &m_pTextLayout);
+		}
+		
+		void CreateText(POINT pos)
+		{
+			
+
+			DWRITE_TEXT_METRICS m_pTextMetrics;
+			m_pTextLayout->GetMetrics(&m_pTextMetrics);
+
+			target->DrawTextLayout(D2D1::Point2F(pos.x, pos.y), m_pTextLayout, m_pBlackBrush, D2D1_DRAW_TEXT_OPTIONS_NONE);
+			
+
+			/*
 			target->DrawText(
 				text,
 				wcslen(text),
 				m_pTextFormat,
-				D2D1::RectF(pos.x, pos.y, pos.x+renderTargetSize.width, pos.y+renderTargetSize.height),
+				D2D1::RectF(pos.x, pos.y, pos.x + renderTargetSize.width, pos.y + renderTargetSize.height),
 				m_pBlackBrush
 			);
-
+			*/
+			
 			//m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 			//m_pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
 		}
-		
+
+
 		D2D1::Matrix3x2F MXSUM(D2D1::Matrix3x2F a, D2D1::Matrix3x2F b)
 		{
 			D2D1::Matrix3x2F c;
@@ -127,13 +145,37 @@ namespace lib
 			float transY = trans._32;
 			for (int i = ((int)((transY - rect.bottom)/ valOfDivision))*valOfDivision; i <= transY; i += valOfDivision)
 			{
+				if (i == 0)
+					continue;
 				target->DrawLine(D2D1::Point2F(-transX, -i), D2D1::Point2F(-transX+rect.right, -i), m_pLightGrayBrush);
 				target->DrawLine(D2D1::Point2F(-5, -i), D2D1::Point2F(5, -i), m_pBlackBrush);
+				auto str = std::to_string((int)(i/valOfDivision));
+				std::wstring widestr = std::wstring(str.begin(), str.end());
+				POINT p;
+				D2D1_SIZE_F renderTargetSize = target->GetSize();
+
+				GetTextLayout((WCHAR*)widestr.c_str(), 10);
+
+				DWRITE_TEXT_METRICS metrics;
+				m_pTextLayout->GetMetrics(&metrics);
+				
+				p.x = -5- metrics.layoutWidth-5;
+				p.y = -i-metrics.layoutHeight;
+				CreateText( p);
 			}
 			for (int i = ((int)((transX - rect.right) / valOfDivision))*valOfDivision; i <= transX; i += valOfDivision)
 			{
+				if (i == 0)
+					continue;
 				target->DrawLine(D2D1::Point2F(-i, -transY + rect.bottom), D2D1::Point2F(-i, -transY), m_pLightGrayBrush);
 				target->DrawLine(D2D1::Point2F(-i, 5), D2D1::Point2F(-i, -5), m_pBlackBrush);
+				auto str = std::to_string(-(int)(i / valOfDivision)  );
+				std::wstring widestr = std::wstring(str.begin(), str.end());
+				POINT p;
+				p.x = -i;
+				p.y = 5;
+				GetTextLayout((WCHAR*)widestr.c_str(), 10);
+				CreateText(p);
 			}
 		}
 		bool isInit = false;
@@ -182,10 +224,13 @@ namespace lib
 				yTag.x = 10;
 				yTag.y = -transY;
 
-				CreateText(L"x", 15, xTag);
-				CreateText(L"y", 15, yTag);
+				GetTextLayout(L"x", 15);
+				CreateText(xTag);
+				GetTextLayout(L"y", 15);
+				CreateText(yTag);
 			}
 			drawSin();
+			drawQuadratic();
 			//drawProp();
 			//CreateText(L"Hello");
 			/*
@@ -229,6 +274,38 @@ namespace lib
 				
 			}
 		}
+
+		void drawQuadratic()
+		{
+			RECT rect;
+			GetClientRect(Handle, &rect);
+			POINT oldDot;
+
+			float transX = trans._31;
+			float transY = trans._32;
+			for (int x = -transX; x < -transX + rect.right; x++)
+			{
+				if (stopRender)
+					return;
+				POINT newDot;
+				newDot.x = x;
+				newDot.y =- ((x / valOfDivision)*(x / valOfDivision))*valOfDivision;
+
+
+
+				if (x != -transX)
+					target->DrawLine(D2D1::Point2F(oldDot.x, oldDot.y), D2D1::Point2F(newDot.x, newDot.y), m_pBlackBrush);
+
+
+				oldDot = newDot;
+
+
+
+			}
+		}
+
+
+
 
 		void Resize(HWND handle)
 		{
