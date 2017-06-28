@@ -82,10 +82,41 @@ namespace lib
 				L"", //locale
 				&m_pTextFormat
 			);
-			
 			m_pDWriteFactory->CreateTextLayout(text, wcslen(text), m_pTextFormat, m_pTextFormat->GetFontSize()*wcslen(text), m_pTextFormat->GetFontSize(), &m_pTextLayout);
 		}
 		
+		WCHAR* Reverse(WCHAR str[])
+		{
+			auto res = str;
+			int k = 0;
+			for (int i = 0; i < wcslen(str); i++)
+			{
+				k = wcslen(str) - i - 1;
+				res[i] = str[k];
+			}
+			return res;
+		}
+
+		void GetTextLayoutReverse(WCHAR text[], FLOAT msc_fontSize)
+		{
+			static const WCHAR msc_fontName[] = L"Verdana";
+			D2D1_SIZE_F renderTargetSize = target->GetSize();
+			m_pDWriteFactory->CreateTextFormat(
+				msc_fontName,
+				NULL,
+				DWRITE_FONT_WEIGHT_NORMAL,
+				DWRITE_FONT_STYLE_NORMAL,
+				DWRITE_FONT_STRETCH_NORMAL,
+				msc_fontSize,
+				L"", //locale
+				&m_pTextFormat
+			);
+			m_pTextFormat->SetReadingDirection(DWRITE_READING_DIRECTION_RIGHT_TO_LEFT);
+			//text = Reverse(text);
+			m_pDWriteFactory->CreateTextLayout(text, wcslen(text), m_pTextFormat, m_pTextFormat->GetFontSize()*wcslen(text), m_pTextFormat->GetFontSize(), &m_pTextLayout);
+		}
+
+
 		void CreateText(POINT pos)
 		{
 			
@@ -156,12 +187,13 @@ namespace lib
 
 				GetTextLayout((WCHAR*)widestr.c_str(), 10);
 
-				DWRITE_TEXT_METRICS metrics;
-				m_pTextLayout->GetMetrics(&metrics);
+				//DWRITE_TEXT_METRICS metrics;
+				//m_pTextLayout->GetMetrics(&metrics);
 				
-				p.x = -5- metrics.layoutWidth-5;
-				p.y = -i-metrics.layoutHeight;
+				p.x = -10 -7*(str.length());
+				p.y = -i-7;
 				CreateText( p);
+				
 			}
 			for (int i = ((int)((transX - rect.right) / valOfDivision))*valOfDivision; i <= transX; i += valOfDivision)
 			{
@@ -172,8 +204,8 @@ namespace lib
 				auto str = std::to_string(-(int)(i / valOfDivision)  );
 				std::wstring widestr = std::wstring(str.begin(), str.end());
 				POINT p;
-				p.x = -i;
-				p.y = 5;
+				p.x = -i-4 * (str.length());
+				p.y = 10;
 				GetTextLayout((WCHAR*)widestr.c_str(), 10);
 				CreateText(p);
 			}
