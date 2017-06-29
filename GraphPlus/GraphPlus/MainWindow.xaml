@@ -8,9 +8,9 @@
         Title="Graph Plus" Height="350" Width="525" Loaded="Window_Loaded" Icon="newicon.png">
     <Grid>
 
-
-        <Border Margin="5,25,5,5" BorderBrush="Gray" BorderThickness="1">
-
+        
+        <Border Margin="5,25,5,5" BorderBrush="Gray" BorderThickness="1" Name="control">
+            
             <local:NativeWindow x:Name="render"/>
 
 

@@ -6,6 +6,8 @@
 #include <wchar.h>
 #include <strsafe.h>
 #include <string>
+#include <math.h>
+
 
 #pragma comment(lib, "Dwrite")
 
@@ -28,7 +30,7 @@ namespace lib
 		IDWriteTextFormat *m_pTextFormat;
 		IDWriteFactory  *m_pDWriteFactory;
 		IDWriteTextLayout *m_pTextLayout;
-
+		int k = 0;
 		bool Initialize(HWND handle)
 		{
 			HRESULT hr;
@@ -70,9 +72,11 @@ namespace lib
 
 		void GetTextLayout(WCHAR text[], FLOAT msc_fontSize)
 		{
+			HRESULT hr;
 			static const WCHAR msc_fontName[] = L"Verdana";
 			D2D1_SIZE_F renderTargetSize = target->GetSize();
-			m_pDWriteFactory->CreateTextFormat(
+
+			hr = m_pDWriteFactory->CreateTextFormat(
 				msc_fontName,
 				NULL,
 				DWRITE_FONT_WEIGHT_NORMAL,
@@ -82,7 +86,12 @@ namespace lib
 				L"", //locale
 				&m_pTextFormat
 			);
-			m_pDWriteFactory->CreateTextLayout(text, wcslen(text), m_pTextFormat, m_pTextFormat->GetFontSize()*wcslen(text), m_pTextFormat->GetFontSize(), &m_pTextLayout);
+			if (FAILED(hr))
+				GetTextLayout(text, msc_fontSize);
+
+			hr = m_pDWriteFactory->CreateTextLayout(text, wcslen(text), m_pTextFormat, m_pTextFormat->GetFontSize()*wcslen(text), m_pTextFormat->GetFontSize(), &m_pTextLayout);
+			if (FAILED(hr))
+				GetTextLayout(text, msc_fontSize);
 		}
 		
 		WCHAR* Reverse(WCHAR str[])
@@ -116,30 +125,29 @@ namespace lib
 			m_pDWriteFactory->CreateTextLayout(text, wcslen(text), m_pTextFormat, m_pTextFormat->GetFontSize()*wcslen(text), m_pTextFormat->GetFontSize(), &m_pTextLayout);
 		}
 
+		void ZoomIn()
+		{
+			if(k<6)
+				valOfDivision-=10;
+			//moveCamera(0, 0);
+		}
+		void ZoomOut()
+		{
+			if (k>-3)
+				valOfDivision+= 10;
+			//moveCamera(0, 0);
+		}
+
 
 		void CreateText(POINT pos)
 		{
+			HRESULT hr;
 			
-
 			DWRITE_TEXT_METRICS m_pTextMetrics;
-			m_pTextLayout->GetMetrics(&m_pTextMetrics);
-
+			hr = m_pTextLayout->GetMetrics(&m_pTextMetrics);
+			if (FAILED(hr))
+				CreateText(pos);
 			target->DrawTextLayout(D2D1::Point2F(pos.x, pos.y), m_pTextLayout, m_pBlackBrush, D2D1_DRAW_TEXT_OPTIONS_NONE);
-			
-
-			/*
-			target->DrawText(
-				text,
-				wcslen(text),
-				m_pTextFormat,
-				D2D1::RectF(pos.x, pos.y, pos.x + renderTargetSize.width, pos.y + renderTargetSize.height),
-				m_pBlackBrush
-			);
-			*/
-			
-			//m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-			//m_pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-
 		}
 
 
@@ -166,7 +174,7 @@ namespace lib
 		
 		bool stopRender;
 
-		float valOfDivision = 100;
+		int valOfDivision = 100;
 
 		void DrawGrid()
 		{
@@ -174,13 +182,39 @@ namespace lib
 			GetClientRect(Handle, &rect);
 			float transX = trans._31;
 			float transY = trans._32;
+
+			LONG min = min(rect.right, rect.bottom);
+
+			if (min / valOfDivision >= 20)
+			{
+				valOfDivision = valOfDivision*10;
+				k++;
+			}
+			
+			else 
+				if (min / valOfDivision < 2)
+				{
+					valOfDivision = valOfDivision / 10;
+					k--;
+				}
+			
+			
+				
+
 			for (int i = ((int)((transY - rect.bottom)/ valOfDivision))*valOfDivision; i <= transY; i += valOfDivision)
 			{
 				if (i == 0)
 					continue;
 				target->DrawLine(D2D1::Point2F(-transX, -i), D2D1::Point2F(-transX+rect.right, -i), m_pLightGrayBrush);
 				target->DrawLine(D2D1::Point2F(-5, -i), D2D1::Point2F(5, -i), m_pBlackBrush);
-				auto str = std::to_string((int)(i/valOfDivision));
+				double val = (i* pow(10, k)) / valOfDivision;
+				if (k < 0)
+					val = (int)(val*pow(10, -k))*pow(10, k);
+				auto str = std::to_string(  val);
+
+				str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+				if (str[str.length() - 1] == '.')
+					str = str.substr(0, str.length() - 1);
 				std::wstring widestr = std::wstring(str.begin(), str.end());
 				POINT p;
 				D2D1_SIZE_F renderTargetSize = target->GetSize();
@@ -201,7 +235,13 @@ namespace lib
 					continue;
 				target->DrawLine(D2D1::Point2F(-i, -transY + rect.bottom), D2D1::Point2F(-i, -transY), m_pLightGrayBrush);
 				target->DrawLine(D2D1::Point2F(-i, 5), D2D1::Point2F(-i, -5), m_pBlackBrush);
-				auto str = std::to_string(-(int)(i / valOfDivision)  );
+				double val = -(i* pow(10, k)) / valOfDivision;
+				if (k < 0)
+					val = (int)(val*pow(10, -k))*pow(10, k);
+				auto str = std::to_string(val);
+				str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+				if (str[str.length() - 1] == '.')
+					str = str.substr(0, str.length() - 1);
 				std::wstring widestr = std::wstring(str.begin(), str.end());
 				POINT p;
 				p.x = -i-4 * (str.length());
@@ -210,9 +250,13 @@ namespace lib
 				CreateText(p);
 			}
 		}
+
+		
+
 		bool isInit = false;
 		void Render(D2D1::ColorF color)
 		{
+			HRESULT hr;
 			stopRender = true;
 			if (!target) return;
 			RECT rect;
@@ -232,6 +276,7 @@ namespace lib
 
 			trans = MXSUM(trans, oldTrans);
 			target->SetTransform(trans);
+
 
 			float transX = trans._31;
 			float transY = trans._32;
@@ -263,6 +308,7 @@ namespace lib
 			}
 			drawSin();
 			drawQuadratic();
+			//DrawSomeFunc();
 			//drawProp();
 			//CreateText(L"Hello");
 			/*
@@ -274,8 +320,80 @@ namespace lib
 			
 			
 			
-			target->EndDraw();
+			hr = target->EndDraw();
+			if (FAILED(hr))
+				Render(color);
+		}
 
+		void DrawSomeFunc()
+		{
+			RECT rect;
+			GetClientRect(Handle, &rect);
+			POINT oldDot;
+
+			float transX = trans._31;
+			float transY = trans._32;
+			bool isPassed = false;
+			for (int x = -transX; x < -transX + rect.right; x++)
+			{
+				if (stopRender)
+					return;
+				POINT newDot;
+				if (!IfODZ(x / valOfDivision))
+				{
+					isPassed = true;
+					continue;
+				}
+				
+				newDot.x = x;
+				newDot.y = -someFunc(x/valOfDivision)*valOfDivision;
+
+				if (isPassed)
+				{
+					oldDot = newDot;
+					isPassed = false;
+				}
+
+				if (x != -transX)
+					target->DrawLine(D2D1::Point2F(oldDot.x, oldDot.y), D2D1::Point2F(newDot.x, newDot.y), m_pBlackBrush);
+
+
+				oldDot = newDot;
+
+
+
+			}
+		}
+
+		bool IfODZ(float x)
+		{
+			try
+			{
+				float val =  sqrt((1 - x)*(1 + x));
+				if (val != val)
+					return false;
+				else
+					return true;
+			}
+			catch (std::exception e)
+			{
+				return false;
+			}
+		}
+
+		float someFunc(float x)
+		{
+
+			try
+			{
+				return sqrt((1-x)*(1+x));
+			}
+			catch (std::exception e)
+			{
+				RECT rect;
+				
+				return someFunc(x-0.005);
+			}
 		}
 
 		void drawSin()
@@ -292,7 +410,7 @@ namespace lib
 					return;
 				POINT newDot;
 				newDot.x = x;
-				newDot.y = -sin(x/valOfDivision)*valOfDivision;
+				newDot.y = -sin((x*pow(10, k))/(float)valOfDivision)*valOfDivision/pow(10, k);
 
 				
 
@@ -321,7 +439,7 @@ namespace lib
 					return;
 				POINT newDot;
 				newDot.x = x;
-				newDot.y =- ((x / valOfDivision)*(x / valOfDivision))*valOfDivision;
+				newDot.y =- (((float)x / valOfDivision)*((float)x / valOfDivision))*valOfDivision*pow(10,k);
 
 
 
@@ -346,7 +464,7 @@ namespace lib
 			if (!GetClientRect(handle, &rect)) return;
 			D2D1_SIZE_U size = D2D1::SizeU(rect.right - rect.left, rect.bottom - rect.top);
 			target->Resize(size);
-
+			
 		}
 
 	private:
@@ -361,7 +479,25 @@ namespace lib
 		float r;
 		float g;
 		float b;
-		UINT32 rgb_;
+
+		void ZoomIn()
+		{
+			renderer->ZoomIn();
+		}
+		void ZoomOut()
+		{
+			renderer->ZoomOut();
+		}
+
+		float GetVOD()
+		{
+			return renderer->valOfDivision;
+		}
+		void SetVOD(float val)
+		{
+			renderer->valOfDivision = val;
+		}
+
 		Scene(System::IntPtr handle, float r_, float g_, float b_)
 		{
 			renderer = new Renderer;

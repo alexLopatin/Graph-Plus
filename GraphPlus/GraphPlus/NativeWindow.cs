@@ -6,12 +6,14 @@ using System.Windows.Interop;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Threading;
+using System.Diagnostics;
+
 
 namespace GraphPlus
 {
-    public class NativeWindow : HwndHost
+    public class NativeWindow : HwndHost, IKeyboardInputSink
     {
-        
+
         public new IntPtr Handle { get; private set; }
         Procedure procedure;
         public Scene scene; // Объект класса Scene для рисования
@@ -19,9 +21,12 @@ namespace GraphPlus
         const int WM_SIZE = 0x0005;
         const int WM_CREATE = 0x0001;
         const int WM_RBUTTONDOWN = 0x0204;
+        const int WM_KEYDOWN = 0x0100;
         const int WM_RBUTTONUP = 0x0205;
         const int WM_NCLBUTTONDOWN = 0x00A1;
         const int WM_NCLBUTTONUP = 0x00A2;
+
+        const int WM_MOUSEWHEEL= 0x020A;
         [StructLayout(LayoutKind.Sequential)]
         struct WindowClass
         {
@@ -143,8 +148,8 @@ namespace GraphPlus
                 Background = background,
                 Menu = menu,
                 Class = name
+                
             };
-
             RegisterClass(ref wnd);
             Handle = CreateWindowEx(extended, name, caption,
                 window, point, point, width, height,
@@ -152,8 +157,33 @@ namespace GraphPlus
 
             scene = new Scene(Handle, 255,255,255); // Создание нового объекта Scene
             T = new Thread(new ThreadStart(MouseController));
+            ComponentDispatcher.ThreadPreprocessMessage += (ref MSG m, ref bool handled) => {
+                //check if WM_KEYDOWN, print some message to test it
+                if (m.message == 0x020A)
+                {
+                    var delta = ((short)((int)m.wParam >> 16));
+                    if (delta < 0)
+                    {
+                        if (!T.IsAlive)
+                            scene.MoveCamera(0, 0);
+                        scene.ZoomIn();
+                    }
+                       
+                    else
+                    {
+                        if (!T.IsAlive)
+                            scene.MoveCamera(0, 0);
+                        scene.ZoomOut();
+                    }
+                        
+                }
+                
+            };
             return new HandleRef(this, Handle);
+            
         }
+        
+
 
         protected override void DestroyWindowCore(HandleRef handle)
         {
@@ -165,22 +195,17 @@ namespace GraphPlus
             scene.MoveCamera(x, y);
         }
 
-        public void ChangeColor(float r, float g, float b)
-        {
-
-            scene.r = r;
-            scene.g = g;
-            scene.b = b;
-            bool handled = false;
-            WndProc(Handle, WM_PAINT, IntPtr.Zero, IntPtr.Zero, ref handled);
-        }
+        
         Thread T;
         protected override IntPtr WndProc(IntPtr handle, int message, IntPtr wparam, IntPtr lparam, ref bool handled)
         {
+            
             try
             {
+                
                 if (message == WM_PAINT)
                 {
+                    
                     Paint paint;
                     
                     BeginPaint(handle, out paint);
@@ -192,28 +217,34 @@ namespace GraphPlus
 
                 if (message == WM_SIZE)
                 {
+                    
                     scene.Resize(handle); // Обработка изменения размеров
                     handled = true;
                 }
 
                 if(message == WM_RBUTTONDOWN)
                 {
+                    
                     if (!T.IsAlive)
                     {
                         T = new Thread(new ThreadStart(MouseController));
                         T.Start();
                     }
                     else
+                    {
+                        
                         T.Abort();
+                    }
+                    handled = true;
                     
                 }
                 if (message == WM_RBUTTONUP)
                 {
                     if (T.IsAlive)
                         T.Abort();
-                    
+                    handled = true;
                 }
-                
+
             }
             catch (Exception e)
             {
@@ -222,7 +253,7 @@ namespace GraphPlus
 
             return base.WndProc(handle, message, wparam, lparam, ref handled);
         }
-
+        
         [DllImport("user32.dll")]
         public static extern bool GetCursorPos(out POINT lpPoint);
 
@@ -237,9 +268,15 @@ namespace GraphPlus
                 return new Point(point.X, point.Y);
             }
         }
-
-
-
+        
+        /*
+        bool IKeyboardInputSink.OnMnemonic(ref MSG msg, ModifierKeys modifiers)
+        {
+            if (msg.wParam == (IntPtr)0xBB)
+                scene.ZoomIn();
+            return true;
+        }
+        */
         POINT oldPosition;
         void MouseController()
         {
@@ -248,7 +285,6 @@ namespace GraphPlus
             GetCursorPos(out oldPosition);
             while (true)
             {
-                
                 POINT newPosition;
                 //Thread.Sleep(1);
                 GetCursorPos(out newPosition);

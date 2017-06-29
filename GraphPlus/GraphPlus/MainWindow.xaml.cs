@@ -31,30 +31,10 @@ namespace GraphPlus
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             RenderWindow = (NativeWindow)FindName("render");
-            //RenderWindow = null;
+
+            
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            Random rand = new Random();
-
-            float r = rand.Next(101)/100f;
-            float g = rand.Next(101)/100f;
-            float b = rand.Next(101) / 100f;
-            RenderWindow.ChangeColor(r, g, b);
-        }
-
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            RenderWindow.MoveCamera(0, 5);
-        }
-
-        private void render_MouseEnter(object sender, MouseEventArgs e)
-        {
-            if(e.LeftButton==MouseButtonState.Pressed)
-            {
-                RenderWindow.MoveCamera(5, 0);
-            }
-        }
+        
     }
 }
