@@ -8,7 +8,6 @@
 #include <string>
 #include <math.h>
 
-
 #pragma comment(lib, "Dwrite")
 
 
@@ -23,11 +22,17 @@ namespace lib
 		{
 			if (factory) factory->Release();
 			if (target) target->Release();
+			if (m_pBlackBrush) m_pBlackBrush->Release();
+			if (m_pLightGrayBrush) m_pLightGrayBrush->Release();
+			if (m_pTextFormat) m_pTextFormat->Release();
+			if (m_pDWriteFactory) m_pDWriteFactory->Release();
+			if (m_pTextLayout) m_pTextLayout->Release();
 		}
 		
 		ID2D1SolidColorBrush *m_pBlackBrush;
 		ID2D1SolidColorBrush *m_pLightGrayBrush;
 		IDWriteTextFormat *m_pTextFormat;
+		IDWriteTextFormat *m_pTextFormat15;
 		IDWriteFactory  *m_pDWriteFactory;
 		IDWriteTextLayout *m_pTextLayout;
 		int k = 0;
@@ -59,6 +64,26 @@ namespace lib
 					&m_pLightGrayBrush
 				);
 				target->GetTransform(&trans);
+				hr = m_pDWriteFactory->CreateTextFormat(
+					L"Verdana",
+					NULL,
+					DWRITE_FONT_WEIGHT_NORMAL,
+					DWRITE_FONT_STYLE_NORMAL,
+					DWRITE_FONT_STRETCH_NORMAL,
+					10,
+					L"", //locale
+					&m_pTextFormat
+				);
+				hr = m_pDWriteFactory->CreateTextFormat(
+					L"Verdana",
+					NULL,
+					DWRITE_FONT_WEIGHT_NORMAL,
+					DWRITE_FONT_STYLE_NORMAL,
+					DWRITE_FONT_STRETCH_NORMAL,
+					15,
+					L"", //locale
+					&m_pTextFormat15
+				);
 			}
 				
 			else
@@ -67,7 +92,6 @@ namespace lib
 				return true;
 			else
 				return false;
-
 		}
 
 		void GetTextLayout(WCHAR text[], FLOAT msc_fontSize)
@@ -75,23 +99,12 @@ namespace lib
 			HRESULT hr;
 			static const WCHAR msc_fontName[] = L"Verdana";
 			D2D1_SIZE_F renderTargetSize = target->GetSize();
-
-			hr = m_pDWriteFactory->CreateTextFormat(
-				msc_fontName,
-				NULL,
-				DWRITE_FONT_WEIGHT_NORMAL,
-				DWRITE_FONT_STYLE_NORMAL,
-				DWRITE_FONT_STRETCH_NORMAL,
-				msc_fontSize,
-				L"", //locale
-				&m_pTextFormat
-			);
-			if (FAILED(hr))
-				GetTextLayout(text, msc_fontSize);
-
+			
 			hr = m_pDWriteFactory->CreateTextLayout(text, wcslen(text), m_pTextFormat, m_pTextFormat->GetFontSize()*wcslen(text), m_pTextFormat->GetFontSize(), &m_pTextLayout);
+			
 			if (FAILED(hr))
 				GetTextLayout(text, msc_fontSize);
+			
 		}
 		
 		WCHAR* Reverse(WCHAR str[])
@@ -131,6 +144,7 @@ namespace lib
 				valOfDivision-=10;
 			//moveCamera(0, 0);
 		}
+		
 		void ZoomOut()
 		{
 			if (k>-3)
@@ -138,18 +152,37 @@ namespace lib
 			//moveCamera(0, 0);
 		}
 
-
-		void CreateText(POINT pos)
+		void CreateText(POINT pos, WCHAR text[], FLOAT msc_fontSize)
 		{
 			HRESULT hr;
-			
-			DWRITE_TEXT_METRICS m_pTextMetrics;
-			hr = m_pTextLayout->GetMetrics(&m_pTextMetrics);
-			if (FAILED(hr))
-				CreateText(pos);
-			target->DrawTextLayout(D2D1::Point2F(pos.x, pos.y), m_pTextLayout, m_pBlackBrush, D2D1_DRAW_TEXT_OPTIONS_NONE);
-		}
+			D2D1_SIZE_F renderTargetSize = target->GetSize();
 
+			//if (FAILED(hr))
+				//CreateText(pos);
+			if(msc_fontSize==15)
+				target->DrawText(
+					text,
+					wcslen(text),
+					m_pTextFormat15,
+					D2D1::RectF(pos.x, pos.y, pos.x + renderTargetSize.width, pos.y + renderTargetSize.height),
+					m_pBlackBrush
+				);
+			else
+				target->DrawText(
+					text,
+					wcslen(text),
+					m_pTextFormat,
+					D2D1::RectF(pos.x, pos.y, pos.x + renderTargetSize.width, pos.y + renderTargetSize.height),
+					m_pBlackBrush
+					 );
+
+
+
+			//target->DrawTextLayout(D2D1::Point2F(pos.x, pos.y), m_pTextLayout, m_pBlackBrush, D2D1_DRAW_TEXT_OPTIONS_NONE);
+			
+			//delete &hr;
+			//delete &m_pTextMetrics;
+		}
 
 		D2D1::Matrix3x2F MXSUM(D2D1::Matrix3x2F a, D2D1::Matrix3x2F b)
 		{
@@ -171,8 +204,6 @@ namespace lib
 
 			Render(D2D1::ColorF::White);
 		}
-		
-		bool stopRender;
 
 		int valOfDivision = 100;
 
@@ -207,6 +238,8 @@ namespace lib
 					continue;
 				target->DrawLine(D2D1::Point2F(-transX, -i), D2D1::Point2F(-transX+rect.right, -i), m_pLightGrayBrush);
 				target->DrawLine(D2D1::Point2F(-5, -i), D2D1::Point2F(5, -i), m_pBlackBrush);
+
+
 				double val = (i* pow(10, k)) / valOfDivision;
 				if (k < 0)
 					val = (int)(val*pow(10, -k))*pow(10, k);
@@ -217,17 +250,11 @@ namespace lib
 					str = str.substr(0, str.length() - 1);
 				std::wstring widestr = std::wstring(str.begin(), str.end());
 				POINT p;
-				D2D1_SIZE_F renderTargetSize = target->GetSize();
-
-				GetTextLayout((WCHAR*)widestr.c_str(), 10);
-
-				//DWRITE_TEXT_METRICS metrics;
-				//m_pTextLayout->GetMetrics(&metrics);
-				
+				//GetTextLayout((WCHAR*)widestr.c_str(), 10);
 				p.x = -10 -7*(str.length());
 				p.y = -i-7;
-				CreateText( p);
-				
+				CreateText( p, (WCHAR*)widestr.c_str(), 10);
+
 			}
 			for (int i = ((int)((transX - rect.right) / valOfDivision))*valOfDivision; i <= transX; i += valOfDivision)
 			{
@@ -235,6 +262,7 @@ namespace lib
 					continue;
 				target->DrawLine(D2D1::Point2F(-i, -transY + rect.bottom), D2D1::Point2F(-i, -transY), m_pLightGrayBrush);
 				target->DrawLine(D2D1::Point2F(-i, 5), D2D1::Point2F(-i, -5), m_pBlackBrush);
+
 				double val = -(i* pow(10, k)) / valOfDivision;
 				if (k < 0)
 					val = (int)(val*pow(10, -k))*pow(10, k);
@@ -246,18 +274,20 @@ namespace lib
 				POINT p;
 				p.x = -i-4 * (str.length());
 				p.y = 10;
-				GetTextLayout((WCHAR*)widestr.c_str(), 10);
-				CreateText(p);
-			}
-		}
+				//GetTextLayout((WCHAR*)widestr.c_str(), 10);
 
-		
+				CreateText(p, (WCHAR*)widestr.c_str(), 10);
+			}
+
+		}
 
 		bool isInit = false;
 		void Render(D2D1::ColorF color)
 		{
+
+			
+
 			HRESULT hr;
-			stopRender = true;
 			if (!target) return;
 			RECT rect;
 			GetClientRect(Handle, &rect);
@@ -280,7 +310,6 @@ namespace lib
 
 			float transX = trans._31;
 			float transY = trans._32;
-			stopRender = false;
 
 			target->SetAntialiasMode(D2D1_ANTIALIAS_MODE::D2D1_ANTIALIAS_MODE_ALIASED);
 			target->Clear(D2D1::ColorF(color));
@@ -301,28 +330,22 @@ namespace lib
 				yTag.x = 10;
 				yTag.y = -transY;
 
-				GetTextLayout(L"x", 15);
-				CreateText(xTag);
-				GetTextLayout(L"y", 15);
-				CreateText(yTag);
+				//GetTextLayout(L"x", 15);
+				CreateText(xTag, L"x", 15);
+				//GetTextLayout(L"y", 15);
+				CreateText(yTag, L"y", 15);
+
 			}
+			
 			drawSin();
 			drawQuadratic();
-			//DrawSomeFunc();
-			//drawProp();
-			//CreateText(L"Hello");
-			/*
-			auto str = std::to_string(rect.bottom);
-			std::wstring widestr = std::wstring(str.begin(), str.end());
-
-			CreateText((WCHAR*)widestr.c_str());
-			*/
 			
 			
 			
 			hr = target->EndDraw();
 			if (FAILED(hr))
 				Render(color);
+
 		}
 
 		void DrawSomeFunc()
@@ -336,8 +359,7 @@ namespace lib
 			bool isPassed = false;
 			for (int x = -transX; x < -transX + rect.right; x++)
 			{
-				if (stopRender)
-					return;
+
 				POINT newDot;
 				if (!IfODZ(x / valOfDivision))
 				{
@@ -406,8 +428,7 @@ namespace lib
 			float transY = trans._32;
 			for (int x = -transX; x < -transX + rect.right; x++)
 			{
-				if (stopRender)
-					return;
+
 				POINT newDot;
 				newDot.x = x;
 				newDot.y = -sin((x*pow(10, k))/(float)valOfDivision)*valOfDivision/pow(10, k);
@@ -421,8 +442,12 @@ namespace lib
 				oldDot = newDot;
 					
 					
-				
+				//delete &newDot;
 			}
+			//delete &rect;
+			//delete &oldDot;
+			//delete &transX;
+			//delete &transY;
 		}
 
 		void drawQuadratic()
@@ -435,8 +460,6 @@ namespace lib
 			float transY = trans._32;
 			for (int x = -transX; x < -transX + rect.right; x++)
 			{
-				if (stopRender)
-					return;
 				POINT newDot;
 				newDot.x = x;
 				newDot.y =- (((float)x / valOfDivision)*((float)x / valOfDivision))*valOfDivision*pow(10,k);
@@ -449,13 +472,14 @@ namespace lib
 
 				oldDot = newDot;
 
-
+				//delete &newDot;
 
 			}
+			//delete &rect;
+			//delete &oldDot;
+			//delete &transX;
+			//delete &transY;
 		}
-
-
-
 
 		void Resize(HWND handle)
 		{
@@ -464,7 +488,7 @@ namespace lib
 			if (!GetClientRect(handle, &rect)) return;
 			D2D1_SIZE_U size = D2D1::SizeU(rect.right - rect.left, rect.bottom - rect.top);
 			target->Resize(size);
-			
+
 		}
 
 	private:

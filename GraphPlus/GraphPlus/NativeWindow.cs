@@ -224,24 +224,24 @@ namespace GraphPlus
 
                 if(message == WM_RBUTTONDOWN)
                 {
-                    
+
                     if (!T.IsAlive)
                     {
+                        stopThread = false;
                         T = new Thread(new ThreadStart(MouseController));
                         T.Start();
                     }
                     else
                     {
-                        
-                        T.Abort();
+                        stopThread = true;
                     }
                     handled = true;
-                    
+
                 }
                 if (message == WM_RBUTTONUP)
                 {
                     if (T.IsAlive)
-                        T.Abort();
+                        stopThread = true;
                     handled = true;
                 }
 
@@ -278,6 +278,10 @@ namespace GraphPlus
         }
         */
         POINT oldPosition;
+
+
+        volatile bool stopThread = false;
+        
         void MouseController()
         {
             
@@ -285,9 +289,13 @@ namespace GraphPlus
             GetCursorPos(out oldPosition);
             while (true)
             {
+                
+                if (stopThread)
+                    return;
                 POINT newPosition;
                 //Thread.Sleep(1);
                 GetCursorPos(out newPosition);
+
                 MoveCamera(newPosition.X - oldPosition.X, newPosition.Y - oldPosition.Y);
                 oldPosition = newPosition;
             }

@@ -10,10 +10,7 @@
 
         
         <Border Margin="5,25,5,5" BorderBrush="Gray" BorderThickness="1" Name="control">
-            
-            <local:NativeWindow x:Name="render"/>
-
-
+            <local:NativeWindow></local:NativeWindow>
         </Border>
     </Grid>
 </Window>
