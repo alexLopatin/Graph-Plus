@@ -210,6 +210,7 @@ namespace lib
 		void DrawGrid()
 		{
 			RECT rect;
+			int oldVOD = valOfDivision;
 			GetClientRect(Handle, &rect);
 			float transX = trans._31;
 			float transY = trans._32;
@@ -234,6 +235,8 @@ namespace lib
 
 			for (int i = ((int)((transY - rect.bottom)/ valOfDivision))*valOfDivision; i <= transY; i += valOfDivision)
 			{
+				if (oldVOD != valOfDivision)
+					return DrawGrid();
 				if (i == 0)
 					continue;
 				target->DrawLine(D2D1::Point2F(-transX, -i), D2D1::Point2F(-transX+rect.right, -i), m_pLightGrayBrush);
@@ -242,7 +245,7 @@ namespace lib
 
 				double val = (i* pow(10, k)) / valOfDivision;
 				if (k < 0)
-					val = (int)(val*pow(10, -k))*pow(10, k);
+					val = round(val*pow(10, -k))*pow(10, k);
 				auto str = std::to_string(  val);
 
 				str.erase(str.find_last_not_of('0') + 1, std::string::npos);
@@ -258,6 +261,8 @@ namespace lib
 			}
 			for (int i = ((int)((transX - rect.right) / valOfDivision))*valOfDivision; i <= transX; i += valOfDivision)
 			{
+				if (oldVOD != valOfDivision)
+					return DrawGrid();
 				if (i == 0)
 					continue;
 				target->DrawLine(D2D1::Point2F(-i, -transY + rect.bottom), D2D1::Point2F(-i, -transY), m_pLightGrayBrush);
@@ -265,7 +270,7 @@ namespace lib
 
 				double val = -(i* pow(10, k)) / valOfDivision;
 				if (k < 0)
-					val = (int)(val*pow(10, -k))*pow(10, k);
+					val = round(val*pow(10, -k))*pow(10, k);
 				auto str = std::to_string(val);
 				str.erase(str.find_last_not_of('0') + 1, std::string::npos);
 				if (str[str.length() - 1] == '.')
