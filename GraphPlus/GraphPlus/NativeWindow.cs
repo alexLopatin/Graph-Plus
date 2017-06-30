@@ -163,17 +163,20 @@ namespace GraphPlus
                 {
                     var delta = ((short)((int)m.wParam >> 16));
                     if (delta < 0)
-                    {
-                        if (!T.IsAlive)
-                            scene.MoveCamera(0, 0);
+                    {   
                         scene.ZoomIn();
-                    }
-                       
-                    else
-                    {
                         if (!T.IsAlive)
-                            scene.MoveCamera(0, 0);
+                        {
+                            scene.Draw();
+                        }
+                    }
+                    else
+                    { 
                         scene.ZoomOut();
+                        if (!T.IsAlive)
+                        {
+                            scene.Draw();
+                        }
                     }
                         
                 }
@@ -297,6 +300,7 @@ namespace GraphPlus
                 GetCursorPos(out newPosition);
 
                 MoveCamera(newPosition.X - oldPosition.X, newPosition.Y - oldPosition.Y);
+                scene.Draw();
                 oldPosition = newPosition;
             }
         }

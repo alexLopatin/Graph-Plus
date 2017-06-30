@@ -7,6 +7,12 @@
 #include <strsafe.h>
 #include <string>
 #include <math.h>
+#include <WinUser.h>
+#include <d2d1_1.h>
+#include <d2d1_1helper.h>
+#include <d2d1effects.h>
+#include <d2d1effects_1.h>
+
 
 #pragma comment(lib, "Dwrite")
 
@@ -36,8 +42,13 @@ namespace lib
 		IDWriteFactory  *m_pDWriteFactory;
 		IDWriteTextLayout *m_pTextLayout;
 		int k = 0;
+		int currentK = 0;
+
+
 		bool Initialize(HWND handle)
 		{
+			trans = D2D1::Matrix3x2F::Translation(0, 0);
+			CurrentTrans = D2D1::Matrix3x2F::Translation(0, 0);
 			HRESULT hr;
 			Handle = handle;
 			RECT rect;
@@ -140,15 +151,99 @@ namespace lib
 
 		void ZoomIn()
 		{
-			if(k<6)
-				valOfDivision-=10;
+			if (k < 6)
+			{
+				RECT rect;
+				GetClientRect(Handle, &rect);
+
+				POINT point;
+				getClientPos(&point);
+				POINTF pointLocalOld;
+				pointLocalOld.x = point.x*pow(10, k) / valOfDivision;
+				pointLocalOld.y = point.y*pow(10, k) / valOfDivision;
+
+
+				valOfDivision -= 10;
+
+				LONG min = min(rect.right, rect.bottom);
+
+				if (min / valOfDivision >= 20)
+				{
+					valOfDivision = valOfDivision * 10;
+					k++;
+				}
+
+				else
+					if (min / valOfDivision < 2)
+					{
+						valOfDivision = valOfDivision / 10;
+						k--;
+					}
+
+
+				getClientPos(&point);
+				POINTF pointLocalNew;
+				pointLocalNew.x = point.x*pow(10, k) / valOfDivision;
+				pointLocalNew.y = point.y*pow(10, k) / valOfDivision;
+
+				POINTF move;
+				move.x = (int)((pointLocalNew.x - pointLocalOld.x)*valOfDivision / pow(10, k));
+				move.y = (int)((pointLocalNew.y - pointLocalOld.y)*valOfDivision / pow(10, k));
+
+
+				moveCamera(move.x, move.y);
+
+			}
+				
 			//moveCamera(0, 0);
 		}
 		
 		void ZoomOut()
 		{
-			if (k>-3)
-				valOfDivision+= 10;
+			if (k > -3)
+			{
+				RECT rect;
+				GetClientRect(Handle, &rect);
+				
+				POINT point;
+				getClientPos(&point);
+				POINTF pointLocalOld;
+				pointLocalOld.x = point.x*pow(10, k) / valOfDivision;
+				pointLocalOld.y = point.y*pow(10, k) / valOfDivision;
+				
+
+				valOfDivision += 10;
+
+				LONG min = min(rect.right, rect.bottom);
+
+				if (min / valOfDivision >= 20)
+				{
+					valOfDivision = valOfDivision * 10;
+					k++;
+				}
+
+				else
+					if (min / valOfDivision < 2)
+					{
+						valOfDivision = valOfDivision / 10;
+						k--;
+					}
+
+
+				getClientPos(&point);
+				POINTF pointLocalNew;
+				pointLocalNew.x = point.x*pow(10, k) / valOfDivision;
+				pointLocalNew.y = point.y*pow(10, k) / valOfDivision;
+
+				POINTF move;
+				move.x = (int)((pointLocalNew.x - pointLocalOld.x)*valOfDivision/ pow(10, k));
+				move.y = (int)((pointLocalNew.y- pointLocalOld.y)*valOfDivision/pow(10, k));
+
+
+				moveCamera(move.x, move.y);
+				//moveCamera((CurrentTrans._31   -point.x)/10, (CurrentTrans._32 -point.y)/10);
+			}
+				
 			//moveCamera(0, 0);
 		}
 
@@ -186,6 +281,7 @@ namespace lib
 
 		D2D1::Matrix3x2F MXSUM(D2D1::Matrix3x2F a, D2D1::Matrix3x2F b)
 		{
+			
 			D2D1::Matrix3x2F c;
 			c._11 = a._11;
 			c._12 = a._12;
@@ -197,55 +293,49 @@ namespace lib
 		}
 		
 		public: 
+
 		D2D1::Matrix3x2F trans;
+		D2D1::Matrix3x2F CurrentTrans;
+
+
+
+
 		void moveCamera(float x, float y)
 		{
-			trans = D2D1::Matrix3x2F::Translation(x, y);
-
-			Render(D2D1::ColorF::White);
+			//trans = D2D1::Matrix3x2F::Translation(x, y);
+			trans._31 = trans._31 + x;
+			trans._32 = trans._32 + y;
+			//Render(D2D1::ColorF::White);
 		}
 
 		int valOfDivision = 100;
+		int currentValOfDivision = 100;
+
 
 		void DrawGrid()
 		{
+
+			//if (ScreenToClient(Handle, mPoint))
+			//	mPoint->x = mPoint->x;
 			RECT rect;
-			int oldVOD = valOfDivision;
 			GetClientRect(Handle, &rect);
-			float transX = trans._31;
-			float transY = trans._32;
+			float transX = CurrentTrans._31;
+			float transY = CurrentTrans._32;
 
-			LONG min = min(rect.right, rect.bottom);
+							
 
-			if (min / valOfDivision >= 20)
+			for (int i = ((int)((transY - rect.bottom)/ currentValOfDivision))*currentValOfDivision; i <= transY; i += currentValOfDivision)
 			{
-				valOfDivision = valOfDivision*10;
-				k++;
-			}
-			
-			else 
-				if (min / valOfDivision < 2)
-				{
-					valOfDivision = valOfDivision / 10;
-					k--;
-				}
-			
-			
 				
-
-			for (int i = ((int)((transY - rect.bottom)/ valOfDivision))*valOfDivision; i <= transY; i += valOfDivision)
-			{
-				if (oldVOD != valOfDivision)
-					return DrawGrid();
 				if (i == 0)
 					continue;
 				target->DrawLine(D2D1::Point2F(-transX, -i), D2D1::Point2F(-transX+rect.right, -i), m_pLightGrayBrush);
 				target->DrawLine(D2D1::Point2F(-5, -i), D2D1::Point2F(5, -i), m_pBlackBrush);
 
 
-				double val = (i* pow(10, k)) / valOfDivision;
-				if (k < 0)
-					val = round(val*pow(10, -k))*pow(10, k);
+				double val = (i* pow(10, currentK)) / currentValOfDivision;
+				if (currentK < 0)
+					val = round(val*pow(10, -currentK))*pow(10, currentK);
 				auto str = std::to_string(  val);
 
 				str.erase(str.find_last_not_of('0') + 1, std::string::npos);
@@ -259,18 +349,17 @@ namespace lib
 				CreateText( p, (WCHAR*)widestr.c_str(), 10);
 
 			}
-			for (int i = ((int)((transX - rect.right) / valOfDivision))*valOfDivision; i <= transX; i += valOfDivision)
+			for (int i = ((int)((transX - rect.right) / currentValOfDivision))*currentValOfDivision; i <= transX; i += currentValOfDivision)
 			{
-				if (oldVOD != valOfDivision)
-					return DrawGrid();
+				
 				if (i == 0)
 					continue;
 				target->DrawLine(D2D1::Point2F(-i, -transY + rect.bottom), D2D1::Point2F(-i, -transY), m_pLightGrayBrush);
 				target->DrawLine(D2D1::Point2F(-i, 5), D2D1::Point2F(-i, -5), m_pBlackBrush);
 
-				double val = -(i* pow(10, k)) / valOfDivision;
+				double val = -(i* pow(10, currentK)) / currentValOfDivision;
 				if (k < 0)
-					val = round(val*pow(10, -k))*pow(10, k);
+					val = round(val*pow(10, -currentK))*pow(10, currentK);
 				auto str = std::to_string(val);
 				str.erase(str.find_last_not_of('0') + 1, std::string::npos);
 				if (str[str.length() - 1] == '.')
@@ -287,7 +376,23 @@ namespace lib
 		}
 
 		bool isInit = false;
-		void Render(D2D1::ColorF color)
+
+		void getClientPos(POINT *p)
+		{
+			GetCursorPos(p);
+			float transX = CurrentTrans._31;
+			float transY = CurrentTrans._32;
+			ScreenToClient(Handle, p);
+			
+
+
+			p->x = p->x - transX;
+			p->y = p->y - transY;
+		}
+
+
+		//main function
+		void Render()
 		{
 
 			
@@ -303,6 +408,9 @@ namespace lib
 				isInit = true;
 			}
 			
+			
+
+
 			target->BeginDraw();
 			D2D1::Matrix3x2F oldTrans;
 			target->GetTransform(&oldTrans);
@@ -312,13 +420,64 @@ namespace lib
 			trans = MXSUM(trans, oldTrans);
 			target->SetTransform(trans);
 
+			target->GetTransform(&CurrentTrans);
+			POINT point;
+			getClientPos(&point);
 
-			float transX = trans._31;
-			float transY = trans._32;
+			float transX = CurrentTrans._31;
+			float transY = CurrentTrans._32;
+
+			
+			currentValOfDivision = valOfDivision;
+			currentK = k;
+
 
 			target->SetAntialiasMode(D2D1_ANTIALIAS_MODE::D2D1_ANTIALIAS_MODE_ALIASED);
-			target->Clear(D2D1::ColorF(color));
+
+			//ID2D1Bitmap *bitmap;
+			//ID2D1BitmapRenderTarget *bitmapRenderTarget;
+			//ID2D1DeviceContext *deviceContext;
+			//ID2D1Effect *gaussianBlur;
+			//ID2D1SolidColorBrush *solidColorBrush;
+
+			
+			
+
+
+			target->Clear(D2D1::ColorF(D2D1::ColorF::White, 1.0f));
+
+
+			//target->CreateCompatibleRenderTarget(&bitmapRenderTarget);
+			//bitmapRenderTarget->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.6f, 1.0f), &solidColorBrush);
+			//bitmapRenderTarget->FillEllipse(D2D1::Ellipse(D2D1::Point2F(0, 0), 100.0f, 100.0f), solidColorBrush);
+			//target->QueryInterface(&deviceContext);
+			//deviceContext->CreateEffect(CLSID_D2D1GaussianBlur, &gaussianBlur);
+	
+			//bitmapRenderTarget->GetBitmap(&bitmap);
+			//gaussianBlur->SetInput(0, bitmap);
+			//gaussianBlur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
+			//gaussianBlur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 5.0f);
+
+			//bitmap->
+			
+			//deviceContext->DrawImage(
+			//	gaussianBlur,
+			//	D2D1_INTERPOLATION_MODE_LINEAR);
+			//bitmap->Release();
+			//bitmapRenderTarget->Release();
+			//deviceContext->Release();
+			//gaussianBlur->Release();
+			//solidColorBrush->Release();
+
+			
 			DrawGrid();
+			//test getClientPos function
+			//target->DrawLine(D2D1::Point2F(0, 0), D2D1::Point2F(point.x, point.y), m_pBlackBrush);
+
+
+
+
+
 			//draw coordinate lines
 			{
 				target->DrawLine(D2D1::Point2F(-transX, 0), D2D1::Point2F(-transX + rect.right, 0), m_pBlackBrush);
@@ -348,9 +507,8 @@ namespace lib
 			
 			
 			hr = target->EndDraw();
-			if (FAILED(hr))
-				Render(color);
-
+			trans._31 = 0;
+			trans._32 = 0;
 		}
 
 		void DrawSomeFunc()
@@ -429,14 +587,14 @@ namespace lib
 			GetClientRect(Handle, &rect);
 			POINT oldDot;
 
-			float transX = trans._31;
-			float transY = trans._32;
+
+			float transX = CurrentTrans._31;
+			float transY = CurrentTrans._32;
 			for (int x = -transX; x < -transX + rect.right; x++)
 			{
-
 				POINT newDot;
 				newDot.x = x;
-				newDot.y = -sin((x*pow(10, k))/(float)valOfDivision)*valOfDivision/pow(10, k);
+				newDot.y = -sin((x*pow(10, currentK))/(float)currentValOfDivision)*currentValOfDivision /pow(10, currentK);
 
 				
 
@@ -446,13 +604,10 @@ namespace lib
 				
 				oldDot = newDot;
 					
-					
+				
 				//delete &newDot;
 			}
-			//delete &rect;
-			//delete &oldDot;
-			//delete &transX;
-			//delete &transY;
+
 		}
 
 		void drawQuadratic()
@@ -461,13 +616,13 @@ namespace lib
 			GetClientRect(Handle, &rect);
 			POINT oldDot;
 
-			float transX = trans._31;
-			float transY = trans._32;
+			float transX = CurrentTrans._31;
+			float transY = CurrentTrans._32;
 			for (int x = -transX; x < -transX + rect.right; x++)
 			{
 				POINT newDot;
 				newDot.x = x;
-				newDot.y =- (((float)x / valOfDivision)*((float)x / valOfDivision))*valOfDivision*pow(10,k);
+				newDot.y =- (((float)x / currentValOfDivision)*((float)x / currentValOfDivision))*currentValOfDivision*pow(10, currentK);
 
 
 
@@ -477,13 +632,7 @@ namespace lib
 
 				oldDot = newDot;
 
-				//delete &newDot;
-
 			}
-			//delete &rect;
-			//delete &oldDot;
-			//delete &transX;
-			//delete &transY;
 		}
 
 		void Resize(HWND handle)
@@ -550,7 +699,7 @@ namespace lib
 		void Draw()
 		{
 			D2D1::ColorF color = D2D1::ColorF(r,g,b);
-			if (renderer) renderer->Render(color);
+			if (renderer) renderer->Render();
 		}
 		void MoveCamera(float x, float y)
 		{
