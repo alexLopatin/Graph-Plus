@@ -4,6 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GraphPlus"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+
         mc:Ignorable="d"
         Title="Graph Plus" Height="350" Width="525" Loaded="Window_Loaded" Icon="Data\newicon.png"
         Style="{StaticResource ChromeStyle}"
@@ -56,6 +58,20 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <ControlTemplate x:Key="Function" TargetType="Button">
+            <Button Height="30" Style="{StaticResource FlatButtonStyle}" >
+                <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Text="{Binding Path=StringFunc}" x:Name="FunctionString" ></TextBlock>
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Delete" Click="MenuItem_Click"  ItemsSource="{Binding F}">
+                            
+                            
+                            
+                        </MenuItem>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+        </ControlTemplate>
     </Window.Resources>
 
 
@@ -68,7 +84,15 @@
             <RowDefinition Height="32"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <TextBox Grid.Row="1" Margin="0,13,0,0" Height="19" VerticalAlignment="Top" KeyDown="TextBox_KeyDown" x:Name="funcBox"/>
+        <TextBlock Margin="5,15,212,250" Grid.Row="1" RenderTransformOrigin="0.622,1.439">y=
+
+        </TextBlock>
+        <TextBox Grid.Row="1" Margin="26,13,0,0" Height="25" VerticalAlignment="Top" KeyDown="TextBox_KeyDown" x:Name="funcBox">
+
+        </TextBox>
+        <GroupBox Margin="5,43,0,20" Grid.Row="1" Header="Functions" >
+            <StackPanel x:Name="FunctionList"/>
+        </GroupBox>
         <Grid Margin="5,0,0,0" Grid.ColumnSpan="2">
             <Image Source="Data/newicon.png" Height="32" HorizontalAlignment="Left" Width="32" RenderOptions.BitmapScalingMode="HighQuality"/>
             <TextBlock VerticalAlignment="Center" Padding="5,0,0,0"

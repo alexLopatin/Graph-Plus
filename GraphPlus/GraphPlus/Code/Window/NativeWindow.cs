@@ -150,9 +150,9 @@ namespace GraphPlus
             scene = new Scene(Handle, 255,255,255);
             inputController = new InputController(this);
             ComponentDispatcher.ThreadPreprocessMessage += inputController.MouseControl;
+
             
             return new HandleRef(this, Handle);
-            
             
             
         }

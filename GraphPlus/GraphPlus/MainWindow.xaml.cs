@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using lib;
-
+using System.Diagnostics;
 
 namespace GraphPlus
 {
@@ -33,13 +33,15 @@ namespace GraphPlus
             //t = t;
             Brush brush = new SolidColorBrush((Color)FindResource("DefaultColor"));
 
-
+            
             Background = brush;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             grid = (Grid)FindName("MainGrid");
+
+            
             NW = (NativeWindow)FindName("renderWindow");
         }
 
@@ -50,6 +52,7 @@ namespace GraphPlus
         private bool isMaximized = false;
         private void Maximize(object sender, RoutedEventArgs e)
         {
+            renderWindow.inputController.StopMouseControl();
             if(WindowState == WindowState.Maximized)
             {
                 SystemCommands.RestoreWindow(this);
@@ -93,11 +96,34 @@ namespace GraphPlus
                 var textBox = (TextBox)FindName("funcBox");
                 
                 Function F = new Function(textBox.Text);
+                F.StringFunc = "y=" + F.StringFunc;
                 NW.inputController.AddFunction(F.result);
+                var template = (ControlTemplate)FindResource("Function");
+                
+                ContentControl c = new ContentControl { Content = template.LoadContent() };
+                
+                c.DataContext = F;
+               
+                FunctionList.Children.Add(c);
+
                 textBox.Text = "";
 
 
             }
         }
+
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Function F = (sender as MenuItem).DataContext as Function;
+
+            renderWindow.inputController.RemoveFunction(F.result);
+            var b =(((sender as MenuItem).Parent as ContextMenu).PlacementTarget as Button).Parent;
+            FunctionList.Children.Remove(b as UIElement);
+            //.Show(sender + e.Source.ToString());
+
+        }
+        
     }
+
 }

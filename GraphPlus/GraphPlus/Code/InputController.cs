@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Threading;
 using lib;
+using System.Diagnostics;
 
 namespace GraphPlus
 {
@@ -62,11 +63,15 @@ namespace GraphPlus
                 }
 
             }
+            
             if (m.message == (int)win32Message.WM_RBUTTONDOWN)
             {
 
-                if (!MCThread.IsAlive)
+                var mouseY = (short)((int)m.lParam & 0xFFFF);
+                var mouseX = ((short)((int)m.lParam >> 16));
+                if (!MCThread.IsAlive&IsMouseOverRenderWindow())
                 {
+                    
                     stopThread = false;
                     MCThread = new Thread(new ThreadStart(MouseController));
                     MCThread.Start();
@@ -75,20 +80,27 @@ namespace GraphPlus
                 {
                     stopThread = true;
                 }
-                handled = true;
+                //handled = true;
 
             }
             if (m.message == (int)win32Message.WM_RBUTTONUP)
             {
                 if (MCThread.IsAlive)
                     stopThread = true;
-                handled = true;
+                //handled = true;
             }
+            
         }
         private static POINT oldPosition;
 
 
         static volatile bool stopThread = false;
+
+        public void StopMouseControl()
+        {
+            if (MCThread.IsAlive)
+                stopThread = true;
+        }
 
         private void MouseController()
         {
@@ -111,6 +123,25 @@ namespace GraphPlus
             VC.RenderWindow.scene.AddFunction(function);
             VC.Draw();
         }
+        public void RemoveFunction(string function)
+        {
+            VC.RenderWindow.scene.RemoveFunction(function);
+            VC.Draw();
+        }
+        public bool IsMouseOverRenderWindow()
+        {
+            short x = (short)System.Windows.Forms.Cursor.Position.X;
+            short y = (short)System.Windows.Forms.Cursor.Position.Y;
 
+            Point upLeft = VC.RenderWindow.PointToScreen(new Point(0, 0));
+            Point rightDown = VC.RenderWindow.PointToScreen(new Point(0, 0));
+            double width = VC.RenderWindow.ActualWidth;
+            double height = VC.RenderWindow.ActualHeight;
+            rightDown.X = rightDown.X + width;
+            rightDown.Y = rightDown.Y + height;
+            if (x <= rightDown.X & x >= upLeft.X & y <= rightDown.Y & y >= upLeft.Y)
+                return true;
+            return false;
+        }
     }
 }

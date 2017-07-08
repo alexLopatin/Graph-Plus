@@ -273,12 +273,14 @@ namespace lib
 	public ref class Function
 	{
 	public:
+		property String^ StringFunc;
 		FunctionC *F;
 		Function(String^ functionString)
 		{
 			result = "";
 			Stack = gcnew List<System::Char>();
 			Parse(functionString);
+			StringFunc = functionString;
 			F = new FunctionC(msclr::interop::marshal_as< std::string >(result));
 		}
 
@@ -1137,8 +1139,18 @@ namespace lib
 			RECT rect;
 			if (!GetClientRect(handle, &rect)) return;
 			D2D1_SIZE_U size = D2D1::SizeU(rect.right - rect.left, rect.bottom - rect.top);
-			target->Resize(size);
+			POINT oldCenter;
 
+			float transX = CurrentTrans._31;
+			float transY = CurrentTrans._32;
+			oldCenter.x = transX + rect.right / 2;
+			oldCenter.y = transY - rect.bottom / 2;
+			target->Resize(size);
+			POINT newCenter;
+			GetClientRect(handle, &rect);
+			newCenter.x = transX + rect.right / 2;
+			newCenter.y = transY - rect.bottom / 2;
+			moveCamera(-newCenter.x + oldCenter.x, -newCenter.y + oldCenter.y);
 		}
 
 	private:
@@ -1171,6 +1183,17 @@ namespace lib
 			FunctionC* F = new FunctionC(msclr::interop::marshal_as< std::string >(stringFunction));
 			renderer->functions.push_back(F);
 		}
+		void RemoveFunction(String^ stringFunction)
+		{
+			FunctionC* F = new FunctionC(msclr::interop::marshal_as< std::string >(stringFunction));
+			for (int i = 0; i < renderer->functions.size(); i++)
+				if (renderer->functions[i]->functionString == F->functionString)
+				{
+					renderer->functions.erase(renderer->functions.begin() + i);
+					break;
+				}
+		}
+
 
 		float GetVOD()
 		{
