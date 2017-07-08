@@ -14,19 +14,10 @@ namespace GraphPlus
     public class NativeWindow : HwndHost, IKeyboardInputSink
     {
 
+        public InputController inputController;
         public new IntPtr Handle { get; private set; }
         Procedure procedure;
-        public Scene scene; // Объект класса Scene для рисования
-        const int WM_PAINT = 0x000F;
-        const int WM_SIZE = 0x0005;
-        const int WM_CREATE = 0x0001;
-        const int WM_RBUTTONDOWN = 0x0204;
-        const int WM_KEYDOWN = 0x0100;
-        const int WM_RBUTTONUP = 0x0205;
-        const int WM_NCLBUTTONDOWN = 0x00A1;
-        const int WM_NCLBUTTONUP = 0x00A2;
-
-        const int WM_MOUSEWHEEL= 0x020A;
+        public Scene scene; 
         [StructLayout(LayoutKind.Sequential)]
         struct WindowClass
         {
@@ -118,6 +109,7 @@ namespace GraphPlus
         static extern bool EndPaint
             (IntPtr handle,
             [In] ref Paint paint);
+        
 
         protected override HandleRef BuildWindowCore(HandleRef parent)
         {
@@ -155,99 +147,45 @@ namespace GraphPlus
                 window, point, point, width, height,
                 parent.Handle, zero, zero, zero);
 
-            scene = new Scene(Handle, 255,255,255); // Создание нового объекта Scene
-            T = new Thread(new ThreadStart(MouseController));
-            ComponentDispatcher.ThreadPreprocessMessage += (ref MSG m, ref bool handled) => {
-                //check if WM_KEYDOWN, print some message to test it
-                if (m.message == 0x020A)
-                {
-                    var delta = ((short)((int)m.wParam >> 16));
-                    if (delta < 0)
-                    {   
-                        scene.ZoomIn();
-                        if (!T.IsAlive)
-                        {
-                            scene.Draw();
-                        }
-                    }
-                    else
-                    { 
-                        scene.ZoomOut();
-                        if (!T.IsAlive)
-                        {
-                            scene.Draw();
-                        }
-                    }
-                        
-                }
-                
-            };
+            scene = new Scene(Handle, 255,255,255);
+            inputController = new InputController(this);
+            ComponentDispatcher.ThreadPreprocessMessage += inputController.MouseControl;
+            
             return new HandleRef(this, Handle);
             
+            
+            
         }
-        
-
 
         protected override void DestroyWindowCore(HandleRef handle)
         {
             DestroyWindow(handle.Handle);
         }
 
-        public void MoveCamera(float x, float y)
-        {
-            scene.MoveCamera(x, y);
-        }
-
-        
-        Thread T;
         protected override IntPtr WndProc(IntPtr handle, int message, IntPtr wparam, IntPtr lparam, ref bool handled)
         {
             
             try
             {
                 
-                if (message == WM_PAINT)
+                if (message == (int)win32Message.WM_PAINT)
                 {
                     
                     Paint paint;
                     
                     BeginPaint(handle, out paint);
-                    scene.Draw(); // Перерисовка содержимого
+                    scene.Draw(); 
                     
                     EndPaint(handle, ref paint);
                     handled = true;
                 }
 
-                if (message == WM_SIZE)
+                if (message == (int)win32Message.WM_SIZE)
                 {
                     
-                    scene.Resize(handle); // Обработка изменения размеров
+                    scene.Resize(handle); 
                     handled = true;
                 }
-
-                if(message == WM_RBUTTONDOWN)
-                {
-
-                    if (!T.IsAlive)
-                    {
-                        stopThread = false;
-                        T = new Thread(new ThreadStart(MouseController));
-                        T.Start();
-                    }
-                    else
-                    {
-                        stopThread = true;
-                    }
-                    handled = true;
-
-                }
-                if (message == WM_RBUTTONUP)
-                {
-                    if (T.IsAlive)
-                        stopThread = true;
-                    handled = true;
-                }
-
             }
             catch (Exception e)
             {
@@ -255,54 +193,6 @@ namespace GraphPlus
             }
 
             return base.WndProc(handle, message, wparam, lparam, ref handled);
-        }
-        
-        [DllImport("user32.dll")]
-        public static extern bool GetCursorPos(out POINT lpPoint);
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct POINT
-        {
-            public int X;
-            public int Y;
-
-            public static implicit operator Point(POINT point)
-            {
-                return new Point(point.X, point.Y);
-            }
-        }
-        
-        /*
-        bool IKeyboardInputSink.OnMnemonic(ref MSG msg, ModifierKeys modifiers)
-        {
-            if (msg.wParam == (IntPtr)0xBB)
-                scene.ZoomIn();
-            return true;
-        }
-        */
-        POINT oldPosition;
-
-
-        volatile bool stopThread = false;
-        
-        void MouseController()
-        {
-            
-
-            GetCursorPos(out oldPosition);
-            while (true)
-            {
-                
-                if (stopThread)
-                    return;
-                POINT newPosition;
-                //Thread.Sleep(1);
-                GetCursorPos(out newPosition);
-
-                MoveCamera(newPosition.X - oldPosition.X, newPosition.Y - oldPosition.Y);
-                scene.Draw();
-                oldPosition = newPosition;
-            }
         }
 
         static IntPtr WndProc(IntPtr handle, uint message, IntPtr wparam, IntPtr lparam)

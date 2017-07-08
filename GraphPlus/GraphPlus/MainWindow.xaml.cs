@@ -12,29 +12,92 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using lib;
+
 
 namespace GraphPlus
 {
+
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
-        public NativeWindow RenderWindow;
+        Grid grid;
+
+        public NativeWindow NW;
         public MainWindow()
         {
             InitializeComponent();
             
-            
+            //t = t;
+            Brush brush = new SolidColorBrush((Color)FindResource("DefaultColor"));
+
+
+            Background = brush;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            RenderWindow = (NativeWindow)FindName("render");
-
-            
+            grid = (Grid)FindName("MainGrid");
+            NW = (NativeWindow)FindName("renderWindow");
         }
 
-        
+        private void Minimize(object sender, RoutedEventArgs e)
+        {
+            SystemCommands.MinimizeWindow(this);
+        }
+        private bool isMaximized = false;
+        private void Maximize(object sender, RoutedEventArgs e)
+        {
+            if(WindowState == WindowState.Maximized)
+            {
+                SystemCommands.RestoreWindow(this);
+                grid.Margin = new Thickness(0);
+                //Margin = new Thickness(0);
+            }
+            else
+            {
+               
+                SystemCommands.MaximizeWindow(this);
+                grid.Margin = new Thickness(7);
+                // Margin = new Thickness(50);
+            }
+                
+            isMaximized =!isMaximized;
+        }
+        private void Close(object sender, RoutedEventArgs e)
+        {
+            SystemCommands.CloseWindow(this);
+        }
+
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if(WindowState ==WindowState.Normal& isMaximized)
+            {
+                isMaximized = false;
+                grid.Margin = new Thickness(0);
+            } else if(WindowState == WindowState.Maximized & !isMaximized)
+            {
+                isMaximized = true;
+                grid.Margin = new Thickness(7);
+            }
+        }
+
+
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                var textBox = (TextBox)FindName("funcBox");
+                
+                Function F = new Function(textBox.Text);
+                NW.inputController.AddFunction(F.result);
+                textBox.Text = "";
+
+
+            }
+        }
     }
 }

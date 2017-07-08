@@ -4,6 +4,24 @@
              xmlns:local="clr-namespace:GraphPlus"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <Color x:Key="DefaultColor" A="255" R="240" G ="240" B="240"/>
+            
+            <Style x:Key="ChromeStyle">
+                <Setter Property="WindowChrome.WindowChrome">
+                    <Setter.Value>
+                        <WindowChrome
+                            NonClientFrameEdges="None"
+                            GlassFrameThickness="0,0,0,1"
+                            ResizeBorderThickness="7"
+                            CaptionHeight="32"
+                            CornerRadius="0"
+                            
+                        />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

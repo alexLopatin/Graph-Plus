@@ -59,6 +59,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Code\InputController.cs" />
+    <Compile Include="Code\ViewController.cs" />
+    <Compile Include="Code\win32Message.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -73,7 +76,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NativeWindow.cs" />
+    <Compile Include="Code\Window\NativeWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -104,7 +107,12 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="newicon.png" />
+    <Resource Include="Data\newicon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Data\close.png" />
+    <Resource Include="Data\down.png" />
+    <Resource Include="Data\open.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

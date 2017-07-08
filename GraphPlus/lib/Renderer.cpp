@@ -12,18 +12,469 @@
 #include <d2d1_1helper.h>
 #include <d2d1effects.h>
 #include <d2d1effects_1.h>
-
-
+//#include <Function.h>
+#include <vector>
+#include <msclr/marshal_cppstd.h>
 #pragma comment(lib, "Dwrite")
 
+using namespace System;
+using namespace System::Collections::Generic;
 
 namespace lib
 {
+	class Operation
+	{
+	public:
+		Operation()
+		{
+			IsX = true;
+			IsNum = false;
+			IsOp = false;
+		}
+		Operation(float n)
+		{
+			IsX = false;
+			IsNum = true;
+			IsOp = false;
+			num = n;
+		}
+		Operation(Operation a, Operation b, std::string op)
+		{
+			IsX = false;
+			IsNum = false;
+			IsOp = true;
+			OpA = new Operation(a);
+			OpB = new Operation(b);
+			opS = op;
+		}
+		float Calculate(float x)
+		{
+			if (IsX)
+				return x;
+			if (IsNum)
+				return num;
+			if (IsOp)
+				return Operate(OpA->Calculate(x), OpB->Calculate(x));
+
+			return 0;
+		}
+	private:
+		bool IsX;
+		bool IsNum;
+		bool IsOp;
+		float num = 0;
+		Operation* OpA;
+		Operation* OpB;
+		std::string opS;
+		float Operate(float a, float b)
+		{
+			if (opS == "+")
+				return a + b;
+			else
+			if (opS == "-")
+				return b - a;
+			else
+			if (opS == "*")
+				return b * a;
+			else
+			if (opS == "/")
+				return b / a;
+			else
+			if (opS == "^")
+				return Math::Pow(b, a);
+
+			return 0;
+		}
+
+	};
+	class FunctionC
+	{
+	public:
+		std::string functionString;
+		FunctionC(std::string FunctionString)
+		{
+			functionString = FunctionString;
+			ops = Split(functionString, ' ');
+			GetCountOfNums();
+			InitNums();
+			nums.reserve(100);
+			Initialize();
+		}
+		
+		std::vector<float> nums;
+
+		float Calculate(float x)
+		{
+			
+			return FinalOp.Calculate(x);
+		}
+
+		/*
+		
+		float Calculate(float x)
+		{
+		nums.clear();
+			for (int i = 0; i < ops.size(); i++)
+				if (!IsOperator(ops[i]))
+					if (ops[i] == "x")
+						nums.push_back(x);
+					else
+						nums.push_back( nums_[i]);
+				else
+				{
+					float a = nums.back();
+					nums.pop_back();
+					float b = nums.back();
+					nums.pop_back();
+					float res = Operate(a, b, ops[i]);
+					nums.push_back(res);
+				}
+
+		return nums.back();
+		}
+		*/
+		bool IsOperator(std::string op)
+		{
+			if (GetLevel(op) == -1)
+				return false;
+			else
+				return true;
+		}
+		
+		void Initialize()
+		{
+			std::vector<Operation> operations;
+			
+			for (int i = 0; i < ops.size(); i++)
+				if (!IsOperator(ops[i]))
+					if (ops[i] == "x")
+					{
+						Operation* o = new Operation();
+
+						operations.push_back(*o);
+					}
+						
+					else
+					{
+						Operation* o = new Operation(nums_[i]);
+						operations.push_back(*o);
+					}
+						
+				else
+				{
+					Operation a = operations.back();
+					operations.pop_back();
+					Operation b = operations.back();
+					operations.pop_back();
+
+					Operation* o = new Operation(a, b, ops[i]);
+
+					operations.push_back(*o);
+				}
+
+			FinalOp = operations.back();
+		}
+		
+	private:
+		Operation FinalOp;
+		void GetCountOfNums()
+		{
+			numsCount = 0;
+			for (int i = 0; i < ops.size(); i++)
+			{
+				if (!IsOperator(ops[i]))
+					numsCount++;
+			}
+		}
+
+		std::vector<float> nums_;
+		void InitNums()
+		{
+			std::vector<float> t(ops.size());
+			for (int i = 0; i < ops.size(); i++)
+				if (!IsOperator(ops[i]))
+					t[i] = std::strtof(ops[i].c_str(), NULL);
+			nums_ = t;
+		}
+		int numsCount;
+		std::vector<std::string> ops;
+		std::vector<std::string> Split(std::string input, char separator)
+		{
+			std::vector<std::string> result;
+			std::string val = "";
+			for (int i = 0; i < input.length(); i++)
+			{
+				if (input[i] != separator)
+				{
+					char c = input[i];
+					val += input[i];
+				}
+
+				else
+				{
+					if (val != "")
+						result.push_back(val);
+					val = "";
+				}
+			}
+			if (val != "")
+				result.push_back(val);
+			int f = result.size();
+
+
+			return result;
+		}
+		int GetLevel(std::string op)
+		{
+			if(op == "(")
+				return 0;
+			else
+			if (op == ")")
+				return 1;
+			else
+			if (op == "+")
+				return 2;
+			else
+			if (op == "-")
+				return 2;
+			else
+			if (op == "*")
+				return 3;
+			else
+			if (op == "/")
+				return 3;
+			else
+			if (op == "^")
+				return 4;
+
+			return -1;
+		}
+		float Operate(float a, float b, std::string op)
+		{
+			if(op=="+")
+				return a + b;
+			else
+			if (op == "-")
+				return b-a;
+			else
+			if (op == "*")
+				return b * a;
+			else
+			if (op == "/")
+				return b / a;
+			else
+			if (op == "^")
+				return Math::Pow(b, a);
+
+			return 0;
+		}
+		
+	};
+	public ref class Function
+	{
+	public:
+		FunctionC *F;
+		Function(String^ functionString)
+		{
+			result = "";
+			Stack = gcnew List<System::Char>();
+			Parse(functionString);
+			F = new FunctionC(msclr::interop::marshal_as< std::string >(result));
+		}
+
+		float Calculate(float x)
+		{
+			return F->Calculate(x);
+		}
+
+
+		~Function()
+		{
+			delete F;
+		}
+		property String^ result;
+	private:
+		int GetLevel(Char op)
+		{
+			switch (op)
+			{
+			case '(':
+				return 0;
+				break;
+			case ')':
+				return 1;
+				break;
+			case '+':
+				return 2;
+				break;
+			case '-':
+				return 2;
+				break;
+			case '*':
+				return 3;
+				break;
+			case '/':
+				return 3;
+				break;
+			case '^':
+				return 4;
+				break;
+
+			default:
+				return -1;
+				break;
+			}
+		}
+
+		float Operate(float a, float b, Char op)
+		{
+			switch (op)
+			{
+			case '+':
+				return a + b;
+				break;
+			case '-':
+				return a - b;
+				break;
+			case '*':
+				return a*b;
+				break;
+			case '/':
+				return a / b;
+				break;
+			case '^':
+				return Math::Pow(a, b);
+				break;
+			default:
+
+				break;
+			}
+			return 0;
+		}
+
+		bool isDigitOrDot(Char op)
+		{
+			if ((op >= 48 & op <= 57) | (op == '46'))
+				return true;
+			else
+				return false;
+		}
+		bool isOperator(Char op)
+		{
+			if (GetLevel(op) != -1)
+				return true;
+			else
+				return false;
+		}
+		property List<System::Char>^ Stack;
+
+
+
+		bool IsASpecChar(Char s)
+		{
+
+			return s == '@';
+		};
+
+		void Clear()
+		{
+
+			//Stack->RemoveAll(gcnew Predicate<Char>(IsASpecChar));
+			for (int i = 0; i < Stack->Count; i++)
+			{
+				if (i >= Stack->Count)
+					break;
+				else if (Stack[i] == '@')
+				{
+					Stack->RemoveAt(i);
+					i = -1;
+				}
+
+
+			}
+		}
+
+		void Parse(String^ functionString)
+		{
+			for (int i = 0; i < functionString->Length; i++)
+			{
+				if (isOperator(functionString[i]))
+				{
+					if (Stack->Count == 0)
+						Stack->Insert(0, functionString[i]);
+					else if (functionString[i] == '(')
+						Stack->Insert(0, functionString[i]);
+					else if (functionString[i] == ')')
+					{
+						for (int j = 0; j < Stack->Count; j++)
+							if (Stack[j] != '(')
+							{
+								result += " " + Stack[j];
+								Stack[j] = '@';
+							}
+							else
+							{
+								Stack[j] = '@';
+								break;
+							}
+
+					}
+					else
+					{
+						for (int j = 0; j < Stack->Count; j++)
+							if (Stack[j] == '(')
+								break;
+							else
+								if (GetLevel(Stack[j]) >= GetLevel(functionString[i]))
+								{
+									result += " " + Stack[j];
+									Stack[j] = '@';
+								}
+						Stack->Insert(0, functionString[i]);
+					}
+					Clear();
+				}
+				else
+				{
+					String^ var = " ";
+					for (int j = i; j < functionString->Length; j++)
+					{
+						if (isOperator(functionString[j]))
+						{
+							if (j != functionString->Length - 1)
+								i = j - 1;
+							break;
+						}
+						else
+						{
+							if (j == functionString->Length - 1)
+								i = j;
+							var += functionString[j];
+						}
+
+					}
+					result += var;
+
+				}
+
+			}
+			if (Stack->Count != 0)
+			{
+				for (int i = 0; i < Stack->Count; i++)
+				{
+					result += " " + Stack[i];
+					//Stack->RemoveAt(i);
+				}
+
+			}
+		}
+	};
+
 	class Renderer
 	{
 	public:
 		HWND Handle;
-
+		
 		~Renderer()
 		{
 			if (factory) factory->Release();
@@ -44,6 +495,38 @@ namespace lib
 		int k = 0;
 		int currentK = 0;
 
+
+		std::vector<FunctionC*> functions;
+
+		void DrawFunctions()
+		{
+			if(functions.size()>0)
+			for (int i = 0; i < functions.size(); i++)
+			{
+				RECT rect;
+				GetClientRect(Handle, &rect);
+				POINT oldDot;
+
+				float transX = CurrentTrans._31;
+				float transY = CurrentTrans._32;
+				for (int x = -transX; x < -transX + rect.right; x+=3)
+				{
+					
+					POINT newDot;
+					newDot.x = x;
+					newDot.y = 0;
+					newDot.y = -( functions[i]->Calculate(x*pow(10, currentK) / (float)currentValOfDivision) )*currentValOfDivision/pow(10, currentK);
+
+					if (x != -transX)
+						target->DrawLine(D2D1::Point2F(oldDot.x, oldDot.y), D2D1::Point2F(newDot.x, newDot.y), m_pBlackBrush);
+
+
+					oldDot = newDot;
+					
+					//functions[i]->Calculate(x);
+				}
+			}
+		}
 
 		bool Initialize(HWND handle)
 		{
@@ -103,6 +586,8 @@ namespace lib
 				return true;
 			else
 				return false;
+
+			
 		}
 
 		void GetTextLayout(WCHAR text[], FLOAT msc_fontSize)
@@ -501,8 +986,19 @@ namespace lib
 
 			}
 			
-			drawSin();
-			drawQuadratic();
+
+			DrawFunctions();
+			
+			/*
+			for (int i = 0; i < 6000; i++)
+			{
+				std::vector<float> f;
+				f.push_back(i);
+				f.pop_back();
+			}
+			*/
+			//drawSin();
+			//drawQuadratic();
 			
 			
 			
@@ -658,13 +1154,22 @@ namespace lib
 		float g;
 		float b;
 
+		
+
 		void ZoomIn()
 		{
 			renderer->ZoomIn();
 		}
 		void ZoomOut()
 		{
+			
 			renderer->ZoomOut();
+		}
+
+		void AddFunction(String^ stringFunction)
+		{
+			FunctionC* F = new FunctionC(msclr::interop::marshal_as< std::string >(stringFunction));
+			renderer->functions.push_back(F);
 		}
 
 		float GetVOD()
@@ -704,6 +1209,7 @@ namespace lib
 		void MoveCamera(float x, float y)
 		{
 			renderer->moveCamera(x, y);
+			
 		}
 
 	private:
