@@ -59,8 +59,8 @@
             </Style.Triggers>
         </Style>
         <ControlTemplate x:Key="Function" TargetType="Button">
-            <Button Height="30" Style="{StaticResource FlatButtonStyle}" >
-                <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Text="{Binding Path=StringFunc}" x:Name="FunctionString" ></TextBlock>
+            <Button Height="30" Style="{StaticResource FlatButtonStyle}"  MouseEnter="FunctionString_MouseEnter" MouseLeave="Button_MouseLeave"  >
+                <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Text="{Binding Path=StringFunc}" x:Name="FunctionString"  ></TextBlock>
                 <Button.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Delete" Click="MenuItem_Click"  ItemsSource="{Binding F}">

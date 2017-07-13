@@ -118,14 +118,14 @@ namespace GraphPlus
                 oldPosition = newPosition;
             }
         }
-        public void AddFunction(string function)
+        public void AddFunction(Function func)
         {
-            VC.RenderWindow.scene.AddFunction(function);
+            VC.RenderWindow.scene.AddFunction(func);
             VC.Draw();
         }
-        public void RemoveFunction(string function)
+        public void RemoveFunction(Function func)
         {
-            VC.RenderWindow.scene.RemoveFunction(function);
+            VC.RenderWindow.scene.RemoveFunction(func);
             VC.Draw();
         }
         public bool IsMouseOverRenderWindow()
@@ -142,6 +142,11 @@ namespace GraphPlus
             if (x <= rightDown.X & x >= upLeft.X & y <= rightDown.Y & y >= upLeft.Y)
                 return true;
             return false;
+        }
+        public void Draw()
+        {
+            if(!MCThread.IsAlive)
+                VC.Draw();
         }
     }
 }

@@ -97,7 +97,7 @@ namespace GraphPlus
                 
                 Function F = new Function(textBox.Text);
                 F.StringFunc = "y=" + F.StringFunc;
-                NW.inputController.AddFunction(F.result);
+                NW.inputController.AddFunction(F);
                 var template = (ControlTemplate)FindResource("Function");
                 
                 ContentControl c = new ContentControl { Content = template.LoadContent() };
@@ -116,14 +116,26 @@ namespace GraphPlus
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
             Function F = (sender as MenuItem).DataContext as Function;
-
-            renderWindow.inputController.RemoveFunction(F.result);
+            renderWindow.inputController.RemoveFunction(F);
             var b =(((sender as MenuItem).Parent as ContextMenu).PlacementTarget as Button).Parent;
             FunctionList.Children.Remove(b as UIElement);
-            //.Show(sender + e.Source.ToString());
 
         }
-        
+
+        private void FunctionString_MouseEnter(object sender, MouseEventArgs e)
+        {
+
+            Function F = (sender as Button).DataContext as Function;
+            F.SetThickness(2);
+            renderWindow.inputController.Draw();
+        }
+
+        private void Button_MouseLeave(object sender, MouseEventArgs e)
+        {
+            Function F = (sender as Button).DataContext as Function;
+            F.SetThickness(1);
+            renderWindow.inputController.Draw();
+        }
     }
 
 }

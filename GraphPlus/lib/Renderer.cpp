@@ -108,7 +108,7 @@ namespace lib
 			
 			return FinalOp.Calculate(x);
 		}
-
+		float thickness = 1;
 		/*
 		
 		float Calculate(float x)
@@ -288,7 +288,10 @@ namespace lib
 		{
 			return F->Calculate(x);
 		}
-
+		void SetThickness(float thickness)
+		{
+			F->thickness = thickness;
+		}
 
 		~Function()
 		{
@@ -508,7 +511,10 @@ namespace lib
 				RECT rect;
 				GetClientRect(Handle, &rect);
 				POINT oldDot;
-
+				ID2D1SolidColorBrush* m_pColorBrush;
+				target->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
+					&m_pColorBrush
+				);
 				float transX = CurrentTrans._31;
 				float transY = CurrentTrans._32;
 				for (int x = -transX; x < -transX + rect.right; x+=3)
@@ -520,13 +526,14 @@ namespace lib
 					newDot.y = -( functions[i]->Calculate(x*pow(10, currentK) / (float)currentValOfDivision) )*currentValOfDivision/pow(10, currentK);
 
 					if (x != -transX)
-						target->DrawLine(D2D1::Point2F(oldDot.x, oldDot.y), D2D1::Point2F(newDot.x, newDot.y), m_pBlackBrush);
+						target->DrawLine(D2D1::Point2F(oldDot.x, oldDot.y), D2D1::Point2F(newDot.x, newDot.y), m_pColorBrush, functions[i]->thickness);
 
 
 					oldDot = newDot;
 					
 					//functions[i]->Calculate(x);
 				}
+				m_pColorBrush->Release();
 			}
 		}
 
@@ -1166,7 +1173,7 @@ namespace lib
 		float g;
 		float b;
 
-		
+		List<Function^> functions;
 
 		void ZoomIn()
 		{
@@ -1178,20 +1185,25 @@ namespace lib
 			renderer->ZoomOut();
 		}
 
-		void AddFunction(String^ stringFunction)
+		void AddFunction(Function^ function)
 		{
-			FunctionC* F = new FunctionC(msclr::interop::marshal_as< std::string >(stringFunction));
-			renderer->functions.push_back(F);
+			functions.Add(function);
+			auto f = function->F;
+			renderer->functions.push_back(f);
+			//FunctionC* F = new FunctionC(msclr::interop::marshal_as< std::string >(stringFunction));
+			//renderer->functions.push_back(F);
 		}
-		void RemoveFunction(String^ stringFunction)
+		void RemoveFunction(Function^ function)
 		{
-			FunctionC* F = new FunctionC(msclr::interop::marshal_as< std::string >(stringFunction));
+			functions.Remove(function);
+			//FunctionC* F = new FunctionC(msclr::interop::marshal_as< std::string >(stringFunction));
 			for (int i = 0; i < renderer->functions.size(); i++)
-				if (renderer->functions[i]->functionString == F->functionString)
+				if (renderer->functions[i]->functionString == function->F->functionString)
 				{
 					renderer->functions.erase(renderer->functions.begin() + i);
 					break;
 				}
+
 		}
 
 
