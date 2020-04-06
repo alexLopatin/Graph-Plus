@@ -1,0 +1,11 @@
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\bin\Debug\netcoreapp3.1\ExpressionParser.exe
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\bin\Debug\netcoreapp3.1\ExpressionParser.deps.json
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\bin\Debug\netcoreapp3.1\ExpressionParser.runtimeconfig.json
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\bin\Debug\netcoreapp3.1\ExpressionParser.runtimeconfig.dev.json
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\bin\Debug\netcoreapp3.1\ExpressionParser.dll
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\bin\Debug\netcoreapp3.1\ExpressionParser.pdb
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\obj\Debug\netcoreapp3.1\ExpressionParser.csprojAssemblyReference.cache
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\obj\Debug\netcoreapp3.1\ExpressionParser.AssemblyInfoInputs.cache
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\obj\Debug\netcoreapp3.1\ExpressionParser.AssemblyInfo.cs
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\obj\Debug\netcoreapp3.1\ExpressionParser.dll
+C:\Users\Admin\source\repos\ExpressionParser\ExpressionParser\obj\Debug\netcoreapp3.1\ExpressionParser.pdb

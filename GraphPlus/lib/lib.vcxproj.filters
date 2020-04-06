@@ -9,15 +9,4 @@
       <UniqueIdentifier>{1e679376-f6c9-4b1f-ac60-24083a0e5c8a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Function.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Function.h" />
-  </ItemGroup>
 </Project>
