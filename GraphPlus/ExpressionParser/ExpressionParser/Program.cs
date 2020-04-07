@@ -25,10 +25,18 @@ namespace ExpressionParser
         static void Main(string[] args)
         {
             Expression expression = new Expression();
-            List<Variable> variables = new List<Variable>() { new Variable("x", 0, true), new Variable("y", 0, true) };
-            expression.Parse("(y^2)*x", variables);
+            List<Variable> variables = new List<Variable>()
+            { 
+                new Variable("x", 1, true), 
+                new Variable("y", 1, true),
+                new Variable("z", 1, true)
+            };
+            expression.Parse("(-y+z)^(-x+1)", variables);
             Derivative der = new Derivative(expression);
-            var d = der.Calculate(variables[1]);
+
+            var d = der.Calculate(variables[0]);
+            var val = expression.GetValue();
+            Console.WriteLine(d);
             Console.WriteLine("Ready");
         }
     }

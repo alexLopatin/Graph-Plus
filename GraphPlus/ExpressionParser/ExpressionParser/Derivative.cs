@@ -41,6 +41,19 @@ namespace ExpressionParser
                 return node;
             }
 
+            if (node.Operation is string && (((string)node.Operation) == "~"))
+            {
+                    if (node.Children[0] is ExpressionNode)
+                        Der((ExpressionNode)node.Children[0]);
+                    else if (node.Children[0] is Variable
+                        && ((Variable)node.Children[0]).IsParameter
+                        && (Variable)node.Children[0] == DiffirentialVariable)
+                        node.Children[0] = 1d;
+                    else
+                        node.Children[0] = 0d;
+                return node;
+            }
+
             if (node.Operation is string && (((string)node.Operation) == "*"))
             {
                 object a = node.Children[0];

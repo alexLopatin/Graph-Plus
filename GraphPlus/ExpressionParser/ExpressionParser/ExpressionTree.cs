@@ -38,12 +38,69 @@ namespace ExpressionParser
         }
         public override string ToString()
         {
-            if (Children.Count == 1)
-                return Operation + "(" + Children[0].ToString() + ")";
-            else if (Children.Count == 2)
-                return "(" + Children[0].ToString() + Operation + Children[1].ToString() + ")";
+            if (Operation is string
+                && (string)Operation == "~")
+            {
+                if(Children[0] is ExpressionNode)
+                    return "-(" + Children[0].ToString() + ")";
+                else
+                    return "-" + Children[0].ToString();
+            }
+            if (Operation is string
+                && (string)Operation == "*")
+            {
+                string res = "";
+                if (Children[0] is ExpressionNode)
+                {
+                    if (((ExpressionNode)Children[0]).Operation is string
+                    && (string)((ExpressionNode)Children[0]).Operation == "*")
+                        res += Children[0].ToString();
+                    else
+                        res += "(" + Children[0].ToString() + ")";
+                }
+                else if(Children[0] is double && (double)Children[0] < 0)
+                    res = "(" + Children[0].ToString() + ")";
+                else
+                    res = Children[0].ToString();
+
+                res += Operation.ToString();
+
+                if (Children[1] is ExpressionNode)
+                {
+                    if (((ExpressionNode)Children[1]).Operation is string
+                    && (string)((ExpressionNode)Children[1]).Operation == "*")
+                        res += Children[1].ToString();
+                    else
+                        res += "(" + Children[1].ToString() + ")";
+                }
+                else
+                    res += Children[1].ToString();
+
+                return res;
+            }
+
+            if (Operation is string 
+                && ((string)Operation == "/" || (string)Operation == "^"))
+            {
+                string res = "";
+                if (Children[0] is ExpressionNode)
+                    res = "(" + Children[0].ToString() + ")";
+                else
+                    res = Children[0].ToString();
+
+                res += Operation.ToString();
+
+                if (Children[1] is ExpressionNode)
+                    res += "(" + Children[1].ToString() + ")";
+                else
+                    res += Children[1].ToString();
+                return res;
+            }
+
+            if(Operation is Function)
+                return Operation.ToString() + "(" + Children[0].ToString() + ")";
             else
-                return "";
+                return Children[0].ToString() + Operation.ToString() + Children[1].ToString();
         }
         public double Factorial(double f)
         {
@@ -78,7 +135,7 @@ namespace ExpressionParser
                     a = ((Variable)Children[0]).Value;
                 else
                     a = (double)Children[0];
-                if(op != "!")
+                if(op != "!" && op != "~")
                 {
                     if (Children[1] is ExpressionNode)
                         b = ((ExpressionNode)Children[1]).GetValue();
@@ -108,6 +165,9 @@ namespace ExpressionParser
                         break;
                     case "!":
                         val = Factorial((int)a);
+                        break;
+                    case "~":
+                        val = -a;
                         break;
                 }
                 return val;
@@ -143,7 +203,22 @@ namespace ExpressionParser
             double val = 0;
             if (node.Operation is string)
             {
-                if (node.Children[0] is double && node.Children[1] is double)
+                if((string)node.Operation == "~")
+                {
+                    if (node.Children[0] is double)
+                    {
+                        val = -(double)node.Children[0];
+                        if (parent != null)
+                        {
+                            int index = parent.Children.IndexOf(node);
+                            parent.Children[index] = val;
+                        }
+                        else
+                            head = val;
+                        changed = true;
+                    }
+                }
+                else if (node.Children[0] is double && node.Children[1] is double)
                 {
                     switch (node.Operation)
                     {

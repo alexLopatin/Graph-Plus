@@ -46,11 +46,16 @@ namespace ExpressionParser
             ArrayList listQueue = new ArrayList(queue);
             while (cur < listQueue.Count)
             {
-                if (IsOperator(listQueue[cur]))
+                if(listQueue[cur] is string && (string)listQueue[cur] == "~")
+                {
+                    cur++;
+                    s.Push(new ExpressionNode("~", s.Pop()));
+                }
+                else if (IsOperator(listQueue[cur]))
                 {
                     char op = ((string)listQueue[cur++])[0];
-                    var b = s.Pop();
-                    var a = s.Pop();
+                    object b = s.Pop();
+                    object a = s.Pop();
                     switch (op)
                     {
                         case '+':

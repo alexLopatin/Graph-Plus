@@ -15,6 +15,7 @@ namespace ExpressionParser
         List<Variable> Variables;
         Dictionary<char, int> operators = new Dictionary<char, int>()
         {
+            { '~', 2 },
             { '+', 1 },
             { '-', 1 },
             { '*', 2 },
@@ -31,7 +32,7 @@ namespace ExpressionParser
         }
         bool IsOperator(char c)
         {
-            return (c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '!');
+            return (c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '!' || c == '~');
         }
         bool IsBracket(char c)
         {
@@ -70,9 +71,12 @@ namespace ExpressionParser
         {
             Queue queue = new Queue();
             Stack stack = new Stack();
+            string prevToken = "";
             string token = "";
             while ((token = ReadNext()) != EndOfExpression)
             {
+                if (token == "-" && ((!Double.TryParse(prevToken, out _) && prevToken != ")") || prevToken == ""))
+                    token = "~";
                 if (Double.TryParse(token, out _))
                     queue.Enqueue(token);
                 if(IsVariable(token))
@@ -103,6 +107,7 @@ namespace ExpressionParser
                     if (stack.Count > 0 && stack.Peek() is Function)
                         queue.Enqueue(stack.Pop());
                 }
+                prevToken = token;
             }
             while (stack.Count > 0)
                 queue.Enqueue(stack.Pop());
