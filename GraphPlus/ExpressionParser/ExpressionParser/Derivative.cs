@@ -12,8 +12,10 @@ namespace ExpressionParser
         {
             expression = new Expression(expr);
         }
-        public Expression Calculate()
+        Variable DiffirentialVariable;
+        public Expression Calculate(Variable diffirentialVariable)
         {
+            DiffirentialVariable = diffirentialVariable;
             Der();
             expression.Simplify();
             return expression;
@@ -30,7 +32,9 @@ namespace ExpressionParser
                 for (int i = 0; i < node.Children.Count; i++)
                     if (node.Children[i] is ExpressionNode)
                         Der((ExpressionNode)node.Children[i]);
-                    else if (node.Children[i] is Variable && ((Variable)node.Children[i]).IsParameter)
+                    else if (node.Children[i] is Variable 
+                        && ((Variable)node.Children[i]).IsParameter
+                        && (Variable)node.Children[i] == DiffirentialVariable)
                         node.Children[i] = 1d;
                     else
                         node.Children[i] = 0d;
@@ -50,7 +54,9 @@ namespace ExpressionParser
                 ExpressionNode first;
                 if (a is ExpressionNode)
                     first = new ExpressionNode("*", Der(new ExpressionNode(a as ExpressionNode)), b);
-                else if (a is Variable && ((Variable)a).IsParameter)
+                else if (a is Variable
+                    && ((Variable)a).IsParameter
+                    && (Variable)a == DiffirentialVariable)
                     first = new ExpressionNode("*", 1d, b);
                 else
                     first = new ExpressionNode("*", 0d, b);
@@ -59,7 +65,9 @@ namespace ExpressionParser
                 ExpressionNode second;
                 if (b is ExpressionNode)
                     second = new ExpressionNode("*", Der(new ExpressionNode(b as ExpressionNode)), a);
-                else if (b is Variable && ((Variable)b).IsParameter)
+                else if (b is Variable 
+                    && ((Variable)b).IsParameter
+                    && (Variable)b == DiffirentialVariable)
                     second = new ExpressionNode("*", 1d, a);
                 else
                     second = new ExpressionNode("*", 0d, a);
@@ -82,7 +90,9 @@ namespace ExpressionParser
                 ExpressionNode first;
                 if (a is ExpressionNode)
                     first = new ExpressionNode("*", Der(new ExpressionNode(a as ExpressionNode)), b);
-                else if (a is Variable && ((Variable)a).IsParameter)
+                else if (a is Variable 
+                    && ((Variable)a).IsParameter
+                    && (Variable)a == DiffirentialVariable)
                     first = new ExpressionNode("*", 1d, b);
                 else
                     first = new ExpressionNode("*", 0d, b);
@@ -91,7 +101,9 @@ namespace ExpressionParser
                 ExpressionNode second;
                 if (b is ExpressionNode)
                     second = new ExpressionNode("*", Der(new ExpressionNode(b as ExpressionNode)), a);
-                else if (b is Variable && ((Variable)b).IsParameter)
+                else if (b is Variable 
+                    && ((Variable)b).IsParameter
+                    && (Variable)b == DiffirentialVariable)
                     second = new ExpressionNode("*", 1d, a);
                 else
                     second = new ExpressionNode("*", 0d, a);
@@ -162,7 +174,9 @@ namespace ExpressionParser
 
                 if (a is ExpressionNode)
                     node.Children[0] = Der(a as ExpressionNode);
-                else if (a is Variable && ((Variable)a).IsParameter)
+                else if (a is Variable
+                    && ((Variable)a).IsParameter
+                    && (Variable)a == DiffirentialVariable)
                     node.Children[0] = 1d;
                 else
                     node.Children[0] = 0d;

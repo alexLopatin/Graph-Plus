@@ -228,6 +228,7 @@ namespace ExpressionParser
                     else
                         head = node.Children[1];
                     changed = true;
+                    return;
                 }
                 if (node.Operation is string
                     && node.Children.Count == 2
@@ -257,6 +258,7 @@ namespace ExpressionParser
                     node.Operation = "*";
                     node.Children[0] = -1d;
                     changed = true;
+                    return;
                 }
                 if (node.Operation is string
                     && node.Children.Count == 2
@@ -291,6 +293,7 @@ namespace ExpressionParser
                     else
                         head = node.Children[1];
                     changed = true;
+                    return;
                 }
                 if (node.Operation is string
                     && node.Children.Count == 2
@@ -325,6 +328,7 @@ namespace ExpressionParser
                     else
                         head = node.Children[0];
                     changed = true;
+                    return;
                 }
             }
 
@@ -345,6 +349,7 @@ namespace ExpressionParser
                     else
                         head = 0d;
                     changed = true;
+                    return;
                 }
                 if (node.Operation is string
                     && node.Children.Count == 2
@@ -379,6 +384,7 @@ namespace ExpressionParser
                     else
                         head = 1d;
                     changed = true;
+                    return;
                 }
             }
 
@@ -398,6 +404,7 @@ namespace ExpressionParser
                     else
                         head = node.Children[0];
                     changed = true;
+                    return;
                 }
             }
 
