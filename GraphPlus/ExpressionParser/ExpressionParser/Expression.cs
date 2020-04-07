@@ -10,6 +10,13 @@ namespace ExpressionParser
         Queue queue;
         public ExpressionTree expTree;
         public List<Variable> Variables;
+        public Expression() { }
+        public Expression(Expression expr)
+        {
+            Variables = new List<Variable>(expr.Variables);
+            queue = new Queue(expr.queue);
+            ToExpressionTree();
+        }
         public void Parse(string textExp, List<Variable> variables)
         {
             queue = new ExpressionParser(textExp, 

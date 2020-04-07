@@ -5,28 +5,30 @@ using System.Linq;
 
 namespace ExpressionParser
 {
-    class Derivative
-    {
-        ExpressionTree tree;
-        
-        public ExpressionTree Calculate()
-        {
-
-            return tree;
-
-        }
-    }
     class Program
     {
+        static bool Test(string expr, Func<double, double> func)
+        {
+            Expression expression = new Expression();
+            List<Variable> variables = new List<Variable>() { new Variable("x", 0, true) };
+            expression.Parse(expr, variables);
+
+            expression.Simplify();
+            for (double i = -1000; i <= 1000; i += 0.1)
+            {
+                variables[0].Value = i;
+                if (Math.Abs(expression.GetValue() - func(i)) > 0.1)
+                    return false;
+            }
+            return true;
+        }
         static void Main(string[] args)
         {
             Expression expression = new Expression();
             List<Variable> variables = new List<Variable>() { new Variable("x", 0, true) };
-            expression.Parse("x/1 + x^(3-2*x^0)", variables);
-            variables[0].Value = 5;
-            var val = expression.GetValue();
-            expression.Simplify();
-            Console.WriteLine(expression.ToString());
+            expression.Parse("ctg(x^2)", variables);
+            Derivative der = new Derivative(expression);
+            var d = der.Calculate();
             Console.WriteLine("Ready");
         }
     }

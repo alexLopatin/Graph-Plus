@@ -1,9 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
 namespace ExpressionParser
 {
+    class StandardDerivativeFunction
+    {
+        public ExpressionNode Derivative;
+        public object Argument;
+        public StandardDerivativeFunction(object argument, ExpressionNode derivative)
+            => (Argument, Derivative) = (argument, derivative);
+    }
     static class StandardFunctions
     {
         private static List<Function> functions = new List<Function>()
@@ -23,6 +31,68 @@ namespace ExpressionParser
             new Function("arctg", 1, (x) => Math.Atan(x[0]))
         };
         public static List<Function> Get() => functions;
+        private static Dictionary<string, StandardDerivativeFunction> derivatives;
+        public static ExpressionNode GetDerivative(string name, object Argument)
+        {
+            if (derivatives == null)
+            {
+                derivatives = new Dictionary<string, StandardDerivativeFunction>();
+                {
+                    object argument = new object();
+                    ExpressionNode der = new ExpressionNode("/", 1d, argument);
+                    StandardDerivativeFunction ln = new StandardDerivativeFunction(argument, der);
+                    derivatives["ln"] = ln;
+                }
 
+                {
+                    object argument = new object();
+                    Function fSin = functions.Find(p => p.Name == "sin");
+                    ExpressionNode sin = new ExpressionNode(fSin, new ArrayList() { argument });
+                    ExpressionNode der = new ExpressionNode("*", -1d, sin);
+                    StandardDerivativeFunction cos = new StandardDerivativeFunction(argument, der);
+                    derivatives["cos"] = cos;
+                }
+
+                {
+                    object argument = new object();
+                    Function fCos = functions.Find(p => p.Name == "cos");
+                    ExpressionNode cos = new ExpressionNode(fCos, new ArrayList() { argument });
+                    StandardDerivativeFunction sin = new StandardDerivativeFunction(argument, cos);
+                    derivatives["sin"] = sin;
+                }
+
+                {
+                    object argument = new object();
+                    Function fCos = functions.Find(p => p.Name == "cos");
+                    ExpressionNode cos = new ExpressionNode(fCos, new ArrayList() { argument });
+                    ExpressionNode delim = new ExpressionNode("*", new ExpressionNode(cos), new ExpressionNode(cos));
+                    ExpressionNode der = new ExpressionNode("/", 1d, delim);
+                    StandardDerivativeFunction tg = new StandardDerivativeFunction(argument, der);
+                    derivatives["tg"] = tg;
+                }
+                {
+                    object argument = new object();
+                    Function fSin = functions.Find(p => p.Name == "sin");
+                    ExpressionNode sin = new ExpressionNode(fSin, new ArrayList() { argument });
+                    ExpressionNode delim = new ExpressionNode("*", new ExpressionNode(sin), new ExpressionNode(sin));
+                    ExpressionNode fraction = new ExpressionNode("/", 1d, delim);
+                    ExpressionNode der = new ExpressionNode("*", -1d, fraction);
+                    StandardDerivativeFunction ctg = new StandardDerivativeFunction(argument, der);
+                    derivatives["ctg"] = ctg;
+                }
+            }
+
+            ExpressionNode res = new ExpressionNode(derivatives[name].Derivative);
+            Change(res, derivatives[name].Argument, Argument);
+            return res;
+        }
+        private static void Change(ExpressionNode node, object argumentToChange, object argument)
+        {
+            for (int i = 0; i < node.Children.Count; i++)
+                if (node.Children[i] is ExpressionNode)
+                    Change(node.Children[i] as ExpressionNode, argumentToChange, argument);
+                else if (node.Children[i] == argumentToChange)
+                    node.Children[i] = argument;
+        }
     }
 }

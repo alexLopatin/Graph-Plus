@@ -11,6 +11,15 @@ namespace ExpressionParser
         public object Operation;
         public ArrayList Children = new ArrayList();
         public ExpressionNode() { }
+        public ExpressionNode(ExpressionNode other) 
+        {
+            Operation = other.Operation;
+            for (int i = 0; i < other.Children.Count; i++)
+                if (other.Children[i] is ExpressionNode)
+                    Children.Add(new ExpressionNode(other.Children[i] as ExpressionNode));
+                else
+                    Children.Add(other.Children[i]);
+        }
         public ExpressionNode(string operation, object first, object second)
         {
             Operation = operation;
@@ -105,7 +114,9 @@ namespace ExpressionParser
             }
             return 0;
         }
+
     }
+
     class ExpressionTree
     {
         public object head;
