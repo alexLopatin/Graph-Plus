@@ -175,6 +175,36 @@ namespace ExpressionParser
             return 0;
         }
 
+        public static ExpressionNode operator +(ExpressionNode a, ExpressionNode b)
+            => new ExpressionNode("+", new ExpressionNode(a), new ExpressionNode(b));
+        public static ExpressionNode operator +(Variable a, ExpressionNode b)
+            => new ExpressionNode("+", a, new ExpressionNode(b));
+        public static ExpressionNode operator +(ExpressionNode a, Variable b)
+            => new ExpressionNode("+", new ExpressionNode(a), b);
+        public static ExpressionNode operator -(ExpressionNode a, ExpressionNode b)
+            => new ExpressionNode("-", new ExpressionNode(a), new ExpressionNode(b));
+        public static ExpressionNode operator -(Variable a, ExpressionNode b)
+            => new ExpressionNode("-", a, new ExpressionNode(b));
+        public static ExpressionNode operator -(ExpressionNode a, Variable b)
+            => new ExpressionNode("-", new ExpressionNode(a), b);
+        public static ExpressionNode operator *(ExpressionNode a, ExpressionNode b)
+            => new ExpressionNode("*", new ExpressionNode(a), new ExpressionNode(b));
+        public static ExpressionNode operator *(Variable a, ExpressionNode b)
+            => new ExpressionNode("*", a, new ExpressionNode(b));
+        public static ExpressionNode operator *(ExpressionNode a, Variable b)
+            => new ExpressionNode("*", new ExpressionNode(a), b);
+        public static ExpressionNode operator /(ExpressionNode a, ExpressionNode b)
+            => new ExpressionNode("/", new ExpressionNode(a), new ExpressionNode(b));
+        public static ExpressionNode operator /(Variable a, ExpressionNode b)
+            => new ExpressionNode("/", a, new ExpressionNode(b));
+        public static ExpressionNode operator /(ExpressionNode a, Variable b)
+            => new ExpressionNode("/", new ExpressionNode(a), b);
+        public static ExpressionNode operator ^(ExpressionNode a, ExpressionNode b)
+            => new ExpressionNode("^", new ExpressionNode(a), new ExpressionNode(b));
+        public static ExpressionNode operator ^(Variable a, ExpressionNode b)
+            => new ExpressionNode("^", a, new ExpressionNode(b));
+        public static ExpressionNode operator ^(ExpressionNode a, Variable b)
+            => new ExpressionNode("^", new ExpressionNode(a), b);
     }
 
     class ExpressionTree

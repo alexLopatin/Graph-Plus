@@ -31,7 +31,7 @@ namespace ExpressionParser
                 new Variable("y", 1, true),
                 new Variable("z", 1, true)
             };
-            expression.Parse("(-y+z)^(-x+1)", variables);
+            expression.Parse("(-y+z)^(-x+1.45645)", variables);
             Derivative der = new Derivative(expression);
 
             var d = der.Calculate(variables[0]);

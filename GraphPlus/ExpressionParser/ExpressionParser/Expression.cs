@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace ExpressionParser
@@ -89,7 +90,7 @@ namespace ExpressionParser
                 else if (listQueue[cur] is Variable)
                     s.Push(listQueue[cur++]);
                 else
-                    s.Push(Double.Parse((string)listQueue[cur++]));
+                    s.Push(Double.Parse((string)listQueue[cur++], CultureInfo.InvariantCulture));
             }
             expTree.head = s.Peek();
         }

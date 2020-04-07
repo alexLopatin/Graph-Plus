@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Globalization;
 
 namespace ExpressionParser
 {
@@ -29,6 +30,14 @@ namespace ExpressionParser
             Functions = functions;
             Constants = constants;
             Variables = variables;
+            for (int i = 0; i < Expression.Length; i++)
+                if (!(char.IsLetterOrDigit(Expression[i])
+                    || char.IsWhiteSpace(Expression[i])
+                    || IsComma(Expression[i])
+                    || IsBracket(Expression[i])
+                    || IsOperator(Expression[i])
+                    || char.IsPunctuation(Expression[i])))
+                    throw new Exception("Bad expression format: only allowed a-z, A-Z, 0-9, commas, dots, operators and brackets");
         }
         bool IsOperator(char c)
         {
@@ -63,7 +72,7 @@ namespace ExpressionParser
             int length = 0;
             if (IsOperator(Expression[curIndex]) || IsBracket(Expression[curIndex]) || IsComma(Expression[curIndex]))
                 return Expression[curIndex++].ToString();
-            for (; curIndex < Expression.Length && Char.IsLetterOrDigit(Expression[curIndex]); curIndex++)
+            for (; curIndex < Expression.Length && (Char.IsLetterOrDigit(Expression[curIndex]) || Expression[curIndex]== '.'); curIndex++)
                 length++;
             return Expression.Substring(curIndex - length, length);
         }
@@ -77,7 +86,7 @@ namespace ExpressionParser
             {
                 if (token == "-" && ((!Double.TryParse(prevToken, out _) && prevToken != ")") || prevToken == ""))
                     token = "~";
-                if (Double.TryParse(token, out _))
+                if (Double.TryParse(token, NumberStyles.Any, CultureInfo.InvariantCulture, out _))
                     queue.Enqueue(token);
                 if(IsVariable(token))
                     queue.Enqueue(Variables.Find(p => p.Name == token));
@@ -102,6 +111,8 @@ namespace ExpressionParser
                 {
                     while (stack.Count > 0 && stack.Peek() as string != "(")
                         queue.Enqueue(stack.Pop());
+                    if(stack.Count == 0 || stack.Peek() as string != "(")
+                        throw new Exception("Bad expression format: missed bracket");
                     if (stack.Count > 0)
                         stack.Pop();
                     if (stack.Count > 0 && stack.Peek() is Function)
@@ -110,7 +121,10 @@ namespace ExpressionParser
                 prevToken = token;
             }
             while (stack.Count > 0)
-                queue.Enqueue(stack.Pop());
+                if (stack.Peek() as string == "(")
+                    throw new Exception("Bad expression format: missed bracket");
+                else
+                    queue.Enqueue(stack.Pop());
             return queue;
         }
     }
