@@ -111,11 +111,15 @@ namespace ExpressionParser
         public object head;
         public void Simplify()
         {
-            SimplifyCalculations();
-            SimplifyEquilent();
-            SimplifyCalculations();
+            bool changed = true;
+            while(changed)
+            {
+                changed = false;
+                SimplifyCalculations(ref changed);
+                SimplifyEquilent(ref changed);
+            } 
         }
-        private void SimplifyCalculations(ExpressionNode node = null, ExpressionNode parent = null)
+        private void SimplifyCalculations(ref bool changed, ExpressionNode node = null, ExpressionNode parent = null)
         {
             if (!(head is ExpressionNode))
                 return;
@@ -123,7 +127,7 @@ namespace ExpressionParser
                 node = head as ExpressionNode;
             for (int i = 0; i < node.Children.Count; i++)
                 if (node.Children[i] is ExpressionNode)
-                    SimplifyCalculations((ExpressionNode)node.Children[i], node);
+                    SimplifyCalculations(ref changed, (ExpressionNode)node.Children[i], node);
 
             double val = 0;
             if (node.Operation is string)
@@ -155,6 +159,7 @@ namespace ExpressionParser
                     }
                     else
                         head = val;
+                    changed = true;
                 }
             }
             if (node.Operation is Function)
@@ -182,10 +187,11 @@ namespace ExpressionParser
                     }
                     else
                         head = val;
+                    changed = true;
                 }
             }
         }
-        private void SimplifyEquilent(ExpressionNode node = null, ExpressionNode parent = null)
+        private void SimplifyEquilent(ref bool changed, ExpressionNode node = null, ExpressionNode parent = null)
         {
             if (!(head is ExpressionNode))
                 return;
@@ -193,7 +199,7 @@ namespace ExpressionParser
                 node = head as ExpressionNode;
             for (int i = 0; i < node.Children.Count; i++)
                 if (node.Children[i] is ExpressionNode)
-                    SimplifyEquilent((ExpressionNode)node.Children[i], node);
+                    SimplifyEquilent(ref changed, (ExpressionNode)node.Children[i], node);
 
             // 0 + ...
             {
@@ -210,6 +216,7 @@ namespace ExpressionParser
                     }
                     else
                         head = node.Children[1];
+                    changed = true;
                 }
                 if (node.Operation is string
                     && node.Children.Count == 2
@@ -224,6 +231,7 @@ namespace ExpressionParser
                     }
                     else
                         head = node.Children[0];
+                    changed = true;
                 }
             }
 
@@ -237,6 +245,7 @@ namespace ExpressionParser
                 {
                     node.Operation = "*";
                     node.Children[0] = -1d;
+                    changed = true;
                 }
                 if (node.Operation is string
                     && node.Children.Count == 2
@@ -251,6 +260,7 @@ namespace ExpressionParser
                     }
                     else
                         head = node.Children[0];
+                    changed = true;
                 }
             }
 
@@ -269,6 +279,7 @@ namespace ExpressionParser
                     }
                     else
                         head = node.Children[1];
+                    changed = true;
                 }
                 if (node.Operation is string
                     && node.Children.Count == 2
@@ -283,6 +294,7 @@ namespace ExpressionParser
                     }
                     else
                         head = node.Children[0];
+                    changed = true;
                 }
             }
 
@@ -301,6 +313,7 @@ namespace ExpressionParser
                     }
                     else
                         head = node.Children[0];
+                    changed = true;
                 }
             }
 
@@ -320,6 +333,7 @@ namespace ExpressionParser
                         
                     else
                         head = 0d;
+                    changed = true;
                 }
                 if (node.Operation is string
                     && node.Children.Count == 2
@@ -334,6 +348,7 @@ namespace ExpressionParser
                     }
                     else
                         head = 0d;
+                    changed = true;
                 }
             }
 
@@ -352,6 +367,7 @@ namespace ExpressionParser
                     }
                     else
                         head = 1d;
+                    changed = true;
                 }
             }
 
@@ -370,6 +386,7 @@ namespace ExpressionParser
                     }
                     else
                         head = node.Children[0];
+                    changed = true;
                 }
             }
 

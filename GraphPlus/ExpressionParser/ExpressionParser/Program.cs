@@ -22,7 +22,7 @@ namespace ExpressionParser
         {
             Expression expression = new Expression();
             List<Variable> variables = new List<Variable>() { new Variable("x", 0, true) };
-            expression.Parse("(x+1 )^ ln(x*0+1)", variables);
+            expression.Parse("x/1 + x^(3-2*x^0)", variables);
             variables[0].Value = 5;
             var val = expression.GetValue();
             expression.Simplify();
