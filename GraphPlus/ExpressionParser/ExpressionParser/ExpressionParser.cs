@@ -24,7 +24,7 @@ namespace ExpressionParser
         };
         public ExpressionParser(string expression, List<Function> functions, List<Variable> constants, List<Variable> variables)
         {
-            Expression = expression.Replace("!", "!1");
+            Expression = expression.Replace("!", "!1 ");
             Functions = functions;
             Constants = constants;
             Variables = variables;
@@ -100,7 +100,7 @@ namespace ExpressionParser
                         queue.Enqueue(stack.Pop());
                     if (stack.Count > 0)
                         stack.Pop();
-                    if (stack.Count > 0 && IsFunction(stack.Peek() as string))
+                    if (stack.Count > 0 && stack.Peek() is Function)
                         queue.Enqueue(stack.Pop());
                 }
             }

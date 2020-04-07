@@ -22,12 +22,11 @@ namespace ExpressionParser
         {
             Expression expression = new Expression();
             List<Variable> variables = new List<Variable>() { new Variable("x", 0, true) };
-            expression.Parse("1 + 2*ln(x+0)", variables);
-            variables[0].Value = 3;
+            expression.Parse("(x+1 )^ ln(x*0+1)", variables);
+            variables[0].Value = 5;
             var val = expression.GetValue();
-            var tree = expression.ToExpressionTree();
-            tree.Simplify();
-            Console.WriteLine(tree.ToString());
+            expression.Simplify();
+            Console.WriteLine(expression.ToString());
             Console.WriteLine("Ready");
         }
     }
