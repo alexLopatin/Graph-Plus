@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Drawing;
 
 namespace ExpressionParser
 {
@@ -31,11 +32,18 @@ namespace ExpressionParser
                 new Variable("y", 1, true),
                 new Variable("z", 1, true)
             };
-            expression.Parse("(-y+z)^(-x+1.45645)", variables);
+            expression.Parse("(x-1)*2+5^5*(8+7-1*x)", variables);
+            //expression.Simplify();
             Derivative der = new Derivative(expression);
 
-            var d = der.Calculate(variables[0]);
+            var d = der.PartialDerivative(variables[0]);
             var val = expression.GetValue();
+
+            var renderer = new ExpressionRenderer(expression);
+            //var image = renderer.Concat("+", (Bitmap)Bitmap.FromFile("1.bmp"), (Bitmap)Bitmap.FromFile("2.bmp"));
+            //image = renderer.ToImage("something");
+            var image = renderer.GetImage();
+            image.Save("test.png");
             Console.WriteLine(d);
             Console.WriteLine("Ready");
         }

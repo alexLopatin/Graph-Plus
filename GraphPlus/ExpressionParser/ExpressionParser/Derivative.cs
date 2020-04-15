@@ -13,7 +13,7 @@ namespace ExpressionParser
             expression = new Expression(expr);
         }
         Variable DiffirentialVariable;
-        public Expression Calculate(Variable diffirentialVariable)
+        public Expression PartialDerivative(Variable diffirentialVariable)
         {
             DiffirentialVariable = diffirentialVariable;
             Der();

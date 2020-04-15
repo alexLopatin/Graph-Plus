@@ -16,7 +16,7 @@ namespace ExpressionParser
         List<Variable> Variables;
         Dictionary<char, int> operators = new Dictionary<char, int>()
         {
-            { '~', 2 },
+            { '~', 3 },
             { '+', 1 },
             { '-', 1 },
             { '*', 2 },
@@ -84,7 +84,7 @@ namespace ExpressionParser
             string token = "";
             while ((token = ReadNext()) != EndOfExpression)
             {
-                if (token == "-" && ((!Double.TryParse(prevToken, out _) && prevToken != ")") || prevToken == ""))
+                if (token == "-" && ((!Double.TryParse(prevToken, out _) && prevToken != ")" && !IsVariable(prevToken)) || prevToken == ""))
                     token = "~";
                 if (Double.TryParse(token, NumberStyles.Any, CultureInfo.InvariantCulture, out _))
                     queue.Enqueue(token);
