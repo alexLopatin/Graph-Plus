@@ -33,7 +33,7 @@ namespace ExpressionParser
                 new Variable("z", 1, true)
             };
             //expression.Parse("1+x-(8+7*x)/(6+x) *5 ", variables);
-            expression.Parse("(x-1)*2+5^(x+2*x-1/5)*(8+7-1*x)", variables);
+            expression.Parse("(x-1)*2+5^(x+2*x - 1/5)*(8+7-1*x) + (1/2)/3", variables);
             //expression.Simplify();
             Derivative der = new Derivative(expression);
 

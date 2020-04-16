@@ -17,7 +17,7 @@ namespace ExpressionParser
         {
             if (operation == "^")
             {
-                int height = left.Height + right.Height - 10;
+                int height = left.Height + 2*(right.Height - 10);
                 int width = left.Width + right.Width;
                 Bitmap res = new Bitmap(width, height);
                 for (int i = 0; i < width; i++)
@@ -25,7 +25,7 @@ namespace ExpressionParser
                         res.SetPixel(i, j, Color.White);
                 var g = Graphics.FromImage(res);
 
-                g.DrawImage(left, 0, (right.Height - 10)/2);
+                g.DrawImage(left, 0, right.Height - 10);
                 g.DrawImage(right, left.Width, 0);
                 return res;
             }
@@ -38,7 +38,7 @@ namespace ExpressionParser
                     for (int j = 0; j < height; j++)
                         res.SetPixel(i, j, Color.White);
                 var g = Graphics.FromImage(res);
-                g.DrawLine(new Pen(Color.Black, 2f), 2, left.Height + 3, width - 2, left.Height + 3);
+                g.DrawLine(new Pen(Color.Black, 2f*(emSize/16)), 2, left.Height + 3, width - 2, left.Height + 3);
                 g.DrawImage(left, (width - left.Width)/2, 0);
                 g.DrawImage(right, (width - right.Width) / 2, left.Height + 10);
                 return res;
@@ -109,7 +109,6 @@ namespace ExpressionParser
             g.DrawArc(pen, 4-10+image.Width, 2, 20, image.Height - 4, -80, 160);
             return res;
         }
-        Bitmap image;
         public Bitmap GetImage(ExpressionNode node = null, int emSize = 16)
         {
             if (node == null)
@@ -120,19 +119,29 @@ namespace ExpressionParser
                 Bitmap second = null;
                 if (node.Children[0] is ExpressionNode)
                 {
-                    first = GetImage(node.Children[0] as ExpressionNode, emSize);
+                    if (node.Operation as string == "/")
+                        first = GetImage(node.Children[0] as ExpressionNode, emSize / 2 + 4);
+                    else
+                        first = GetImage(node.Children[0] as ExpressionNode, emSize);
                     if (node.Operation as string != "+" 
                         && node.Operation as string != "-"
                         && node.Operation as string != "/")
                         first = AddBrackets(first);
                 }
                 else
-                    first = ToImage(node.Children[0].ToString(), emSize);
+                {
+                    if (node.Operation as string == "/")
+                        first = ToImage(node.Children[0].ToString(), emSize / 2 + 4);
+                    else
+                        first = ToImage(node.Children[0].ToString(), emSize);
+                }
+                    
 
                 if (node.Children[1] is ExpressionNode)
                 {
-                    if (node.Operation as string == "^")
-                        second = GetImage(node.Children[1] as ExpressionNode, emSize/2 + 6);
+                    if (node.Operation as string == "^"
+                        || node.Operation as string == "/")
+                        second = GetImage(node.Children[1] as ExpressionNode, emSize/2 + 4);
                     else
                         second = GetImage(node.Children[1] as ExpressionNode, emSize);
 
@@ -144,15 +153,16 @@ namespace ExpressionParser
                 }
                 else
                 {
-                    if(node.Operation as string == "^")
-                        second = ToImage(node.Children[1].ToString(), emSize / 2 + 6);
+                    if(node.Operation as string == "^" 
+                        || node.Operation as string == "/")
+                        second = ToImage(node.Children[1].ToString(), emSize / 2 + 4);
                     else
                         second = ToImage(node.Children[1].ToString(), emSize);
                 }
 
                 return Concat(node.Operation as string, first, second, emSize);
             }
-            return image;
+            throw new Exception("Render error");
         }
     }
 }
